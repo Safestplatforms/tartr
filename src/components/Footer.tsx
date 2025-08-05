@@ -11,7 +11,7 @@ const Footer = () => {
               <span className="text-xl font-semibold text-foreground">tartr</span>
             </div>
             <p className="text-muted-foreground text-sm">
-              Unlock liquidity from your crypto holdings with the most trusted borrowing platform.
+              Deposit crypto as collateral and borrow stablecoins instantly with the most trusted lending platform.
             </p>
           </div>
 

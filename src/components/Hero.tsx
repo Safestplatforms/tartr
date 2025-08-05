@@ -8,19 +8,19 @@ const Hero = () => {
       <div className="container mx-auto px-4">
         <div className="text-center max-w-4xl mx-auto mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-            Borrow Against Your
-            <span className="block">BTC & ETH</span>
+            Borrow USDC & USDT
+            <span className="block">Against Your Crypto</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Unlock liquidity from your crypto holdings without selling. 
-            Simple, secure, and designed for growth.
+            Deposit BTC or ETH as collateral and borrow stablecoins instantly. 
+            Keep your crypto, access liquidity.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="text-lg px-8 py-6">
-              Start Borrowing
+              Borrow USDC
             </Button>
             <Button variant="outline" size="lg" className="text-lg px-8 py-6">
-              View Markets
+              View Rates
             </Button>
           </div>
         </div>

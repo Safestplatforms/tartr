@@ -3,24 +3,26 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 const BorrowSection = () => {
-  const assets = [
+  const collateralAssets = [
     {
       name: "Bitcoin",
       symbol: "BTC",
       icon: "₿",
-      apy: "4.2%",
-      available: "$2.4M",
+      borrowApy: "4.2%",
+      availableToBorrow: "$2.4M",
       ltv: "75%",
-      status: "Active"
+      status: "Active",
+      borrowAssets: "USDC, USDT"
     },
     {
       name: "Ethereum", 
       symbol: "ETH",
       icon: "Ξ",
-      apy: "3.8%",
-      available: "$1.8M",
+      borrowApy: "3.8%",
+      availableToBorrow: "$1.8M",
       ltv: "80%",
-      status: "Active"
+      status: "Active",
+      borrowAssets: "USDC, USDT"
     }
   ];
 
@@ -29,16 +31,16 @@ const BorrowSection = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Available Assets
+            Collateral Assets
           </h2>
           <p className="text-muted-foreground text-lg">
-            Choose your collateral and start borrowing today
+            Deposit crypto collateral to borrow USDC or USDT
           </p>
         </div>
 
         <div className="max-w-4xl mx-auto">
           <div className="grid gap-6">
-            {assets.map((asset) => (
+            {collateralAssets.map((asset) => (
               <Card key={asset.symbol} className="border border-border">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
@@ -50,7 +52,7 @@ const BorrowSection = () => {
                       </div>
                       <div>
                         <CardTitle className="text-xl">{asset.name}</CardTitle>
-                        <p className="text-muted-foreground">{asset.symbol}</p>
+                        <p className="text-muted-foreground">Collateral • {asset.borrowAssets}</p>
                       </div>
                     </div>
                     <Badge variant="outline" className="bg-success/10 text-success border-success/20">
@@ -62,11 +64,11 @@ const BorrowSection = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Borrow APY</p>
-                      <p className="text-lg font-semibold text-foreground">{asset.apy}</p>
+                      <p className="text-lg font-semibold text-foreground">{asset.borrowApy}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Available</p>
-                      <p className="text-lg font-semibold text-foreground">{asset.available}</p>
+                      <p className="text-sm text-muted-foreground mb-1">Available to Borrow</p>
+                      <p className="text-lg font-semibold text-foreground">{asset.availableToBorrow}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Max LTV</p>
@@ -74,7 +76,7 @@ const BorrowSection = () => {
                     </div>
                     <div className="flex items-end">
                       <Button className="w-full">
-                        Borrow {asset.symbol}
+                        Use as Collateral
                       </Button>
                     </div>
                   </div>
