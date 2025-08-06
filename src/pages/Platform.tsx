@@ -1,14 +1,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Wallet, TrendingUp, PieChart, CreditCard } from "lucide-react";
+import { ArrowLeft, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
-import BorrowTab from "@/components/platform/BorrowTab";
-import MarketsTab from "@/components/platform/MarketsTab";
-import PortfolioTab from "@/components/platform/PortfolioTab";
+import LoanPlans from "@/components/platform/LoanPlans";
 
 const Platform = () => {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
@@ -69,42 +65,8 @@ const Platform = () => {
             </Button>
           </div>
         ) : (
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2">Welcome to tartr Platform</h1>
-              <p className="text-muted-foreground">
-                Manage your crypto lending, borrowing, and portfolio all in one place.
-              </p>
-            </div>
-
-            <Tabs defaultValue="borrow" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="borrow" className="flex items-center space-x-2">
-                  <CreditCard className="w-4 h-4" />
-                  <span>Borrow</span>
-                </TabsTrigger>
-                <TabsTrigger value="markets" className="flex items-center space-x-2">
-                  <TrendingUp className="w-4 h-4" />
-                  <span>Markets</span>
-                </TabsTrigger>
-                <TabsTrigger value="portfolio" className="flex items-center space-x-2">
-                  <PieChart className="w-4 h-4" />
-                  <span>Portfolio</span>
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="borrow" className="mt-6">
-                <BorrowTab />
-              </TabsContent>
-              
-              <TabsContent value="markets" className="mt-6">
-                <MarketsTab />
-              </TabsContent>
-              
-              <TabsContent value="portfolio" className="mt-6">
-                <PortfolioTab />
-              </TabsContent>
-            </Tabs>
+          <div className="max-w-7xl mx-auto">
+            <LoanPlans />
           </div>
         )}
       </main>
