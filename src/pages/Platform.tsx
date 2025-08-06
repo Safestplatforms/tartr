@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
-import LoanPlans from "@/components/platform/LoanPlans";
+import LoanSlider from "@/components/platform/LoanSlider";
 
 const Platform = () => {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
@@ -66,7 +66,7 @@ const Platform = () => {
           </div>
         ) : (
           <div className="max-w-7xl mx-auto">
-            <LoanPlans />
+            <LoanSlider />
           </div>
         )}
       </main>
