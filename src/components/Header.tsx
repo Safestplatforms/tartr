@@ -8,14 +8,20 @@ const Header = () => {
         </div>
         
         <nav className="hidden md:flex items-center space-x-6">
+          <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+            How It Works
+          </a>
+          <a href="#assets" className="text-muted-foreground hover:text-foreground transition-colors">
+            Assets
+          </a>
           <a href="#borrow" className="text-muted-foreground hover:text-foreground transition-colors">
             Borrow
           </a>
-          <a href="#markets" className="text-muted-foreground hover:text-foreground transition-colors">
-            Markets
+          <a href="#security" className="text-muted-foreground hover:text-foreground transition-colors">
+            Security
           </a>
-          <a href="#portfolio" className="text-muted-foreground hover:text-foreground transition-colors">
-            Portfolio
+          <a href="#faq" className="text-muted-foreground hover:text-foreground transition-colors">
+            FAQ
           </a>
         </nav>
 

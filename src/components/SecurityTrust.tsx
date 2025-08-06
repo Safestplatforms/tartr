@@ -33,7 +33,7 @@ const SecurityTrust = () => {
   ];
 
   return (
-    <section className="py-20 px-4 bg-muted/30">
+    <section id="security" className="py-20 px-4 bg-muted/30">
       <div className="container mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-foreground mb-4">
