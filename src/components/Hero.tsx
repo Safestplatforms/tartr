@@ -25,9 +25,11 @@ const Hero = () => {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="px-8 py-3 text-lg hover-scale">
-              Contact Sales
-            </Button>
+            <Link to="/contact-sales">
+              <Button size="lg" variant="outline" className="px-8 py-3 text-lg hover-scale">
+                Contact Sales
+              </Button>
+            </Link>
           </div>
 
           {/* Feature highlights */}

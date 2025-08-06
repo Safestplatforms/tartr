@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 const Header = () => {
   return <header className="border-b border-border bg-background">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -26,7 +27,9 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center">
-          <Button variant="outline">Connect Wallet</Button>
+          <Link to="/platform">
+            <Button variant="outline">Connect Wallet</Button>
+          </Link>
         </div>
       </div>
     </header>;
