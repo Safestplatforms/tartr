@@ -2,9 +2,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 import LoanSlider from "@/components/platform/LoanSlider";
+import LoansOverview from "@/components/platform/LoansOverview";
+import PortfolioTab from "@/components/platform/PortfolioTab";
 
 const Platform = () => {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
@@ -66,7 +69,25 @@ const Platform = () => {
           </div>
         ) : (
           <div className="max-w-7xl mx-auto">
-            <LoanSlider />
+            <Tabs defaultValue="loans" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="loans">My Loans</TabsTrigger>
+                <TabsTrigger value="borrow">New Loan</TabsTrigger>
+                <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="loans" className="mt-6">
+                <LoansOverview />
+              </TabsContent>
+              
+              <TabsContent value="borrow" className="mt-6">
+                <LoanSlider />
+              </TabsContent>
+              
+              <TabsContent value="portfolio" className="mt-6">
+                <PortfolioTab />
+              </TabsContent>
+            </Tabs>
           </div>
         )}
       </main>
