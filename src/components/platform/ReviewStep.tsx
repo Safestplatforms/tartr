@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,14 +16,14 @@ const ReviewStep = ({ applicationData, onPrev }: ReviewStepProps) => {
 
   const handleSubmit = () => {
     // Simulate loan application submission
-    toast.success("Loan application submitted successfully!", {
-      description: "You'll receive your funds within 24 hours after verification.",
+    toast.success("Processing your application...", {
+      description: "Please wait while we approve your loan.",
     });
     
-    // Navigate back to platform after a short delay
+    // Navigate to success page with loan details
     setTimeout(() => {
-      navigate('/platform');
-    }, 2000);
+      navigate(`/platform/success?amount=${applicationData.loanAmount}&plan=${applicationData.planName}`);
+    }, 1500);
   };
 
   const monthlyPayment = (applicationData.loanAmount * (parseFloat(applicationData.terms.apr) / 100 / 12) * Math.pow(1 + parseFloat(applicationData.terms.apr) / 100 / 12, applicationData.terms.duration)) / (Math.pow(1 + parseFloat(applicationData.terms.apr) / 100 / 12, applicationData.terms.duration) - 1);
