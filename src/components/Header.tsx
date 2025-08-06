@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+
 const Header = () => {
-  return <header className="border-b border-border bg-background">
+  return (
+    <header className="border-b border-border bg-background">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          
           <span className="text-xl font-semibold text-foreground">tartr</span>
         </div>
         
@@ -32,6 +33,8 @@ const Header = () => {
           </Link>
         </div>
       </div>
-    </header>;
+    </header>
+  );
 };
+
 export default Header;
