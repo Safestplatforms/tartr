@@ -32,36 +32,41 @@ const TartrVisaSection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left side - Card visual */}
-            <div className="relative">
-              <div className="bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-8 text-primary-foreground shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
-                <div className="flex justify-between items-start mb-8">
-                  <div>
-                    <h3 className="text-2xl font-bold mb-2">tartr</h3>
-                    <p className="text-primary-foreground/80">Crypto Visa Card</p>
+            {/* Left side - Card visual with fixed dimensions */}
+            <div className="relative flex justify-center">
+              {/* Card container with fixed aspect ratio (credit card proportions) */}
+              <div className="relative w-80 h-50" style={{ aspectRatio: '1.6' }}>
+                <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-6 text-primary-foreground shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500 flex flex-col justify-between">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-xl font-bold mb-1">tartr</h3>
+                      <p className="text-primary-foreground/80 text-sm">Crypto Visa Card</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm opacity-80 font-semibold">VISA</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm opacity-80">VISA</div>
+                  
+                  <div className="my-4">
+                    <div className="text-base tracking-wider font-mono">
+                      •••• •••• •••• 1234
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <p className="text-xs opacity-80 mb-1">VALID THRU</p>
+                      <p className="text-sm">12/28</p>
+                    </div>
+                    <div>
+                      <p className="text-xs opacity-80 mb-1">CARDHOLDER</p>
+                      <p className="text-sm">CRYPTO USER</p>
+                    </div>
                   </div>
                 </div>
-                <div className="mb-6">
-                  <div className="text-lg tracking-wider font-mono">
-                    •••• •••• •••• 1234
-                  </div>
-                </div>
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-xs opacity-80 mb-1">VALID THRU</p>
-                    <p className="text-sm">12/28</p>
-                  </div>
-                  <div>
-                    <p className="text-xs opacity-80 mb-1">CARDHOLDER</p>
-                    <p className="text-sm">CRYPTO USER</p>
-                  </div>
-                </div>
+                {/* Background decoration */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary/10 rounded-3xl -z-10 blur-xl"></div>
               </div>
-              {/* Background decoration */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary/10 rounded-3xl -z-10 blur-xl"></div>
             </div>
 
             {/* Right side - Content */}
