@@ -23,9 +23,8 @@ const Header = () => {
           </a>
         </nav>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center">
           <Button variant="outline">Connect Wallet</Button>
-          <Button>Launch App</Button>
         </div>
       </div>
     </header>
