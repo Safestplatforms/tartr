@@ -10,83 +10,83 @@ const GeometricBackground = () => {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Grid pattern */}
+        {/* Animated grid pattern */}
         <defs>
           <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
             <path
               d="M 60 0 L 0 0 0 60"
               fill="none"
-              stroke="hsl(var(--foreground))"
+              stroke="hsl(var(--primary))"
               strokeWidth="0.5"
-              opacity="0.1"
+              opacity="0.2"
             />
           </pattern>
+          
+          {/* Gradient for flowing lines */}
+          <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+            <stop offset="50%" stopColor="hsl(var(--primary))" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+          </linearGradient>
         </defs>
+        
         <rect width="100%" height="100%" fill="url(#grid)" />
         
-        {/* Geometric shapes */}
-        <g opacity="0.08">
-          {/* Large triangle */}
-          <path
-            d="M200,100 L400,300 L100,350 Z"
-            fill="none"
-            stroke="hsl(var(--foreground))"
+        {/* Animated flowing lines */}
+        <g className="animate-pulse">
+          {/* Horizontal flowing lines */}
+          <line 
+            x1="0" y1="200" x2="1200" y2="200" 
+            stroke="url(#flowGradient)" 
             strokeWidth="1"
+            className="animate-[slide-in-right_3s_ease-in-out_infinite]"
+          />
+          <line 
+            x1="0" y1="400" x2="1200" y2="400" 
+            stroke="url(#flowGradient)" 
+            strokeWidth="1"
+            className="animate-[slide-in-right_4s_ease-in-out_infinite]"
+            style={{ animationDelay: '1s' }}
+          />
+          <line 
+            x1="0" y1="600" x2="1200" y2="600" 
+            stroke="url(#flowGradient)" 
+            strokeWidth="1"
+            className="animate-[slide-in-right_5s_ease-in-out_infinite]"
+            style={{ animationDelay: '2s' }}
           />
           
-          {/* Circle */}
-          <circle
-            cx="800"
-            cy="150"
-            r="80"
-            fill="none"
-            stroke="hsl(var(--foreground))"
+          {/* Vertical flowing lines */}
+          <line 
+            x1="300" y1="0" x2="300" y2="800" 
+            stroke="url(#flowGradient)" 
             strokeWidth="1"
+            className="animate-[fade-in_2s_ease-in-out_infinite_alternate]"
           />
-          
-          {/* Hexagon */}
-          <path
-            d="M1000,200 L1040,230 L1040,290 L1000,320 L960,290 L960,230 Z"
-            fill="none"
-            stroke="hsl(var(--foreground))"
+          <line 
+            x1="600" y1="0" x2="600" y2="800" 
+            stroke="url(#flowGradient)" 
             strokeWidth="1"
+            className="animate-[fade-in_3s_ease-in-out_infinite_alternate]"
+            style={{ animationDelay: '0.5s' }}
           />
-          
-          {/* Rectangle */}
-          <rect
-            x="150"
-            y="500"
-            width="120"
-            height="80"
-            fill="none"
-            stroke="hsl(var(--foreground))"
+          <line 
+            x1="900" y1="0" x2="900" y2="800" 
+            stroke="url(#flowGradient)" 
             strokeWidth="1"
-          />
-          
-          {/* Diamond */}
-          <path
-            d="M600,450 L650,500 L600,550 L550,500 Z"
-            fill="none"
-            stroke="hsl(var(--foreground))"
-            strokeWidth="1"
-          />
-          
-          {/* Connecting lines */}
-          <path
-            d="M300,200 L600,180 M800,230 L950,250 M400,400 L550,500"
-            stroke="hsl(var(--foreground))"
-            strokeWidth="0.5"
+            className="animate-[fade-in_2.5s_ease-in-out_infinite_alternate]"
+            style={{ animationDelay: '1s' }}
           />
         </g>
         
-        {/* Floating dots */}
-        <g opacity="0.15">
-          <circle cx="120" cy="80" r="2" fill="hsl(var(--foreground))" />
-          <circle cx="450" cy="120" r="1.5" fill="hsl(var(--foreground))" />
-          <circle cx="750" cy="80" r="2" fill="hsl(var(--foreground))" />
-          <circle cx="950" cy="400" r="1.5" fill="hsl(var(--foreground))" />
-          <circle cx="300" cy="600" r="2" fill="hsl(var(--foreground))" />
-          <circle cx="1100" cy="500" r="1.5" fill="hsl(var(--foreground))" />
+        {/* Pulsing dots at intersections */}
+        <g className="animate-pulse">
+          <circle cx="300" cy="200" r="3" fill="hsl(var(--primary))" opacity="0.4" />
+          <circle cx="600" cy="400" r="3" fill="hsl(var(--primary))" opacity="0.4" />
+          <circle cx="900" cy="600" r="3" fill="hsl(var(--primary))" opacity="0.4" />
+          <circle cx="600" cy="200" r="2" fill="hsl(var(--primary))" opacity="0.3" />
+          <circle cx="300" cy="400" r="2" fill="hsl(var(--primary))" opacity="0.3" />
+          <circle cx="900" cy="400" r="2" fill="hsl(var(--primary))" opacity="0.3" />
         </g>
       </svg>
     </div>
