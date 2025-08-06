@@ -1,46 +1,39 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Shield, Zap, Globe } from "lucide-react";
-
 const TartrVisaSection = () => {
-  const features = [
-    {
-      icon: CreditCard,
-      title: "Instant Spending",
-      description: "Use your crypto collateral to spend anywhere Visa is accepted"
-    },
-    {
-      icon: Shield,
-      title: "Secure & Protected",
-      description: "Advanced security features and fraud protection built-in"
-    },
-    {
-      icon: Zap,
-      title: "Real-time Conversion",
-      description: "Automatic conversion from your collateral at competitive rates"
-    },
-    {
-      icon: Globe,
-      title: "Global Acceptance",
-      description: "Accepted at millions of merchants worldwide"
-    }
-  ];
-
-  return (
-    <section className="py-20 bg-background">
+  const features = [{
+    icon: CreditCard,
+    title: "Instant Spending",
+    description: "Use your crypto collateral to spend anywhere Visa is accepted"
+  }, {
+    icon: Shield,
+    title: "Secure & Protected",
+    description: "Advanced security features and fraud protection built-in"
+  }, {
+    icon: Zap,
+    title: "Real-time Conversion",
+    description: "Automatic conversion from your collateral at competitive rates"
+  }, {
+    icon: Globe,
+    title: "Global Acceptance",
+    description: "Accepted at millions of merchants worldwide"
+  }];
+  return <section className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left side - Card visual with fixed dimensions */}
             <div className="relative flex justify-center">
               {/* Card container with fixed aspect ratio (credit card proportions) */}
-              <div className="relative w-80 h-50" style={{ aspectRatio: '1.6' }}>
+              <div className="relative w-80 h-50" style={{
+              aspectRatio: '1.6'
+            }}>
                 <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-6 text-primary-foreground shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500 flex flex-col justify-between">
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="text-xl font-bold mb-1">tartr</h3>
-                      <p className="text-primary-foreground/80 text-sm">Crypto Visa Card</p>
+                      <p className="text-primary-foreground/80 text-sm">tartr world black edition</p>
                     </div>
                     <div className="text-right">
                       <div className="text-sm opacity-80 font-semibold">VISA</div>
@@ -56,11 +49,11 @@ const TartrVisaSection = () => {
                   <div className="flex justify-between items-end">
                     <div>
                       <p className="text-xs opacity-80 mb-1">VALID THRU</p>
-                      <p className="text-sm">12/28</p>
+                      <p className="text-sm">12/37</p>
                     </div>
                     <div>
-                      <p className="text-xs opacity-80 mb-1">CARDHOLDER</p>
-                      <p className="text-sm">CRYPTO USER</p>
+                      <p className="text-xs opacity-80 mb-1">JOHN SENA</p>
+                      <p className="text-sm">John Sena</p>
                     </div>
                   </div>
                 </div>
@@ -81,8 +74,7 @@ const TartrVisaSection = () => {
               </p>
 
               <div className="grid sm:grid-cols-2 gap-4 mb-8">
-                {features.map((feature, index) => (
-                  <div key={index} className="flex items-start space-x-3">
+                {features.map((feature, index) => <div key={index} className="flex items-start space-x-3">
                     <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                       <feature.icon className="w-4 h-4 text-primary" />
                     </div>
@@ -90,8 +82,7 @@ const TartrVisaSection = () => {
                       <h4 className="font-semibold text-foreground mb-1">{feature.title}</h4>
                       <p className="text-sm text-muted-foreground">{feature.description}</p>
                     </div>
-                  </div>
-                ))}
+                  </div>)}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -145,8 +136,6 @@ const TartrVisaSection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default TartrVisaSection;
