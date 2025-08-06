@@ -1,66 +1,58 @@
+
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, Shield, Zap } from "lucide-react";
+import { ArrowRight, Shield, Zap, TrendingUp } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
-    <section className="py-20 bg-background">
-      <div className="container mx-auto px-4">
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-            Borrow USDC & USDT
-            <span className="block">Against Your Crypto</span>
+    <section className="py-20 px-4 bg-gradient-to-b from-background to-background/50">
+      <div className="container mx-auto text-center">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
+            Unlock Your Crypto's
+            <span className="text-primary block">Potential</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Deposit BTC or ETH as collateral and borrow stablecoins instantly. 
-            Keep your crypto, access liquidity.
+            Deposit BTC & ETH as collateral to borrow USDC & USDT. 
+            Simple, secure, and instant crypto lending platform.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="text-lg px-8 py-6">
-              Borrow USDC
-            </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6">
-              View Rates
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Link to="/platform">
+              <Button size="lg" className="px-8 py-3 text-lg">
+                Launch App
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <Button size="lg" variant="outline" className="px-8 py-3 text-lg">
+              Learn More
             </Button>
           </div>
-        </div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          <Card className="border border-border">
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="w-6 h-6 text-foreground" />
+          {/* Feature highlights */}
+          <div className="grid md:grid-cols-3 gap-8 max-w-3xl mx-auto">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Zap className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Growth Focused</h3>
-              <p className="text-muted-foreground">
-                Maximize your capital efficiency with competitive rates
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-border">
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-6 h-6 text-foreground" />
+              <h3 className="font-semibold mb-2">Instant Loans</h3>
+              <p className="text-sm text-muted-foreground">Get USDC/USDT loans in seconds</p>
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Shield className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Secure & Audited</h3>
-              <p className="text-muted-foreground">
-                Built with security-first principles and battle-tested protocols
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-border">
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-6 h-6 text-foreground" />
+              <h3 className="font-semibold mb-2">Secure & Safe</h3>
+              <p className="text-sm text-muted-foreground">Your crypto is protected by smart contracts</p>
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <TrendingUp className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Instant Access</h3>
-              <p className="text-muted-foreground">
-                Get liquidity in minutes, not days
-              </p>
-            </CardContent>
-          </Card>
+              <h3 className="font-semibold mb-2">Competitive Rates</h3>
+              <p className="text-sm text-muted-foreground">Low interest rates and flexible terms</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
