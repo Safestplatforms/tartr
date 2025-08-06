@@ -1,12 +1,13 @@
-
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Zap, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
+import GeometricBackground from "./GeometricBackground";
 
 const Hero = () => {
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-background to-background/50">
-      <div className="container mx-auto text-center">
+    <section className="relative py-20 px-4 bg-gradient-to-b from-background to-background/50 overflow-hidden">
+      <GeometricBackground />
+      <div className="container mx-auto text-center relative z-10">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
             Unlock Your Crypto's
