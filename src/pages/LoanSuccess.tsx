@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,9 @@ const LoanSuccess = () => {
   const [searchParams] = useSearchParams();
   const loanAmount = searchParams.get('amount') || '10000';
   const planName = searchParams.get('plan') || 'Growth';
+  
+  // Generate a mock loan ID for the details page
+  const loanId = `TL-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
   useEffect(() => {
     // Create confetti effect
@@ -108,10 +110,12 @@ const LoanSuccess = () => {
                 Return to Platform
               </Button>
             </Link>
-            <Button variant="outline" className="w-full" size="sm">
-              View Loan Details
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            <Link to={`/platform/loan/${loanId}`}>
+              <Button variant="outline" className="w-full" size="sm">
+                View Loan Details
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
           </div>
 
           <p className="text-xs text-muted-foreground mt-4">

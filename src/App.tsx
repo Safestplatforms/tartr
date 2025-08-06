@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Platform from "./pages/Platform";
 import LoanApplication from "./pages/LoanApplication";
 import LoanSuccess from "./pages/LoanSuccess";
+import LoanDetails from "./pages/LoanDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/platform" element={<Platform />} />
           <Route path="/platform/apply" element={<LoanApplication />} />
           <Route path="/platform/success" element={<LoanSuccess />} />
+          <Route path="/platform/loan/:loanId" element={<LoanDetails />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
