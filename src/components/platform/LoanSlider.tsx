@@ -89,61 +89,6 @@ const LoanSlider = () => {
 
   return (
     <div className="space-y-8">
-      {/* Wallet Overview */}
-      <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Wallet className="w-5 h-5 text-primary" />
-              <CardTitle className="text-lg">Your Wallet Overview</CardTitle>
-            </div>
-            <Badge variant="outline" className="text-green-600 border-green-600">
-              Connected
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <div className="text-2xl font-bold text-primary mb-2">
-                ${totalValue.toLocaleString()}
-              </div>
-              <div className="text-sm text-muted-foreground mb-4">Total Portfolio Value</div>
-              
-              <div className="space-y-2">
-                {Object.entries(balances).map(([crypto, amount]) => (
-                  <div key={crypto} className="flex justify-between text-sm">
-                    <span className="font-medium">{crypto}:</span>
-                    <span>
-                      {amount.toFixed(crypto.includes('USD') ? 0 : 4)} 
-                      <span className="text-muted-foreground ml-1">
-                        (${getAssetValue(crypto, amount).toLocaleString()})
-                      </span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <div className="text-2xl font-bold text-green-600 mb-2">
-                ${maxBorrowable.toLocaleString()}
-              </div>
-              <div className="text-sm text-muted-foreground mb-4">Max Available to Borrow (80% LTV)</div>
-              
-              {maxBorrowable === 0 && (
-                <div className="flex items-start space-x-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
-                  <div className="text-sm text-yellow-800">
-                    Add crypto assets to your wallet to start borrowing
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-4">Choose Your Loan Amount</h2>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">

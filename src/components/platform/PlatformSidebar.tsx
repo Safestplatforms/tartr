@@ -13,8 +13,10 @@ import {
   SidebarHeader,
   SidebarTrigger
 } from "@/components/ui/sidebar";
-import { CreditCard, Plus, PieChart, ArrowLeft, Wallet } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { CreditCard, Plus, PieChart, ArrowLeft, Wallet, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useWalletBalance } from "@/hooks/useWalletBalance";
 
 interface PlatformSidebarProps {
   activeTab: string;
@@ -41,6 +43,7 @@ const menuItems = [
 ];
 
 export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: PlatformSidebarProps) {
+  const { totalValue, maxBorrowable, balances, isLoading } = useWalletBalance();
   return (
     <Sidebar className="w-64">
       <SidebarHeader className="border-b border-border bg-background p-4">
@@ -60,6 +63,63 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
       </SidebarHeader>
 
       <SidebarContent>
+        {/* Wallet Widget */}
+        {isWalletConnected && (
+          <div className="p-4">
+            <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Wallet className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium">Wallet</span>
+                  </div>
+                  <Badge variant="outline" className="text-xs text-green-600 border-green-600">
+                    Connected
+                  </Badge>
+                </div>
+                
+                {isLoading ? (
+                  <div className="text-center py-4">
+                    <div className="w-4 h-4 border border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-lg font-bold text-primary">
+                        ${totalValue.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Portfolio Value</div>
+                    </div>
+                    
+                    <div>
+                      <div className="text-lg font-bold text-green-600">
+                        ${maxBorrowable.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Available to Borrow</div>
+                    </div>
+
+                    {maxBorrowable === 0 && (
+                      <div className="flex items-start space-x-1 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                        <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                        <span>Add crypto to start borrowing</span>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-1">
+                      {Object.entries(balances).slice(0, 3).map(([crypto, amount]) => (
+                        <div key={crypto} className="flex justify-between text-xs">
+                          <span className="font-medium">{crypto}:</span>
+                          <span>{amount.toFixed(crypto.includes('USD') ? 0 : 4)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
