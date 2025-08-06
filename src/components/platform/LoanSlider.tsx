@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,6 +47,14 @@ const LoanSlider = () => {
 
   const currentTier = getLoanTier(loanAmount[0]);
   const isPopular = currentTier.name === "Growth";
+
+  const handleGetLoan = () => {
+    const params = new URLSearchParams({
+      amount: loanAmount[0].toString(),
+      plan: currentTier.name
+    });
+    window.location.href = `/platform/apply?${params.toString()}`;
+  };
 
   return (
     <div className="space-y-8">
@@ -146,7 +153,7 @@ const LoanSlider = () => {
             </div>
 
             <div className="pt-4">
-              <Button size="lg" className="w-full">
+              <Button size="lg" className="w-full" onClick={handleGetLoan}>
                 Get ${formatAmount(loanAmount[0])} Loan
               </Button>
             </div>
