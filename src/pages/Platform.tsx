@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -5,7 +6,6 @@ import { Wallet } from "lucide-react";
 import LoanSlider from "@/components/platform/LoanSlider";
 import LoansOverview from "@/components/platform/LoansOverview";
 import PortfolioTab from "@/components/platform/PortfolioTab";
-import AvailableToBorrow from "@/components/platform/AvailableToBorrow";
 import { PlatformSidebar } from "@/components/platform/PlatformSidebar";
 
 const Platform = () => {
@@ -37,23 +37,13 @@ const Platform = () => {
 
     switch (activeTab) {
       case "loans":
-        return (
-          <div className="space-y-6">
-            <AvailableToBorrow />
-            <LoansOverview />
-          </div>
-        );
+        return <LoansOverview />;
       case "borrow":
         return <LoanSlider />;
       case "portfolio":
         return <PortfolioTab />;
       default:
-        return (
-          <div className="space-y-6">
-            <AvailableToBorrow />
-            <LoansOverview />
-          </div>
-        );
+        return <LoansOverview />;
     }
   };
 
