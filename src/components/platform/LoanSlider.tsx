@@ -1,8 +1,11 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { DollarSign, Info } from "lucide-react";
 
 const LoanSlider = () => {
   const [loanAmount, setLoanAmount] = useState([10000]);
@@ -40,13 +43,31 @@ const LoanSlider = () => {
   };
 
   const formatAmount = (amount: number) => {
-    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
-    if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}K`;
-    return `$${amount.toLocaleString()}`;
+    if (amount >= 1000000) return `${(amount / 1000000).toFixed(1)}M`;
+    if (amount >= 1000) return `${(amount / 1000).toFixed(0)}K`;
+    return amount.toLocaleString();
   };
 
   const currentTier = getLoanTier(loanAmount[0]);
   const isPopular = currentTier.name === "Growth";
+  
+  // Calculate collateral requirements
+  const collateralRatioNum = parseInt(currentTier.collateralRatio) / 100;
+  const requiredCollateralValue = loanAmount[0] * collateralRatioNum;
+
+  // Sample crypto prices (in a real app, these would come from an API)
+  const cryptoPrices = {
+    BTC: 45000,
+    ETH: 2800,
+    USDC: 1
+  };
+
+  const getCollateralAmount = (crypto: string, price: number) => {
+    const amount = requiredCollateralValue / price;
+    if (amount < 1) return amount.toFixed(4);
+    if (amount < 1000) return amount.toFixed(2);
+    return amount.toFixed(0);
+  };
 
   const handleGetLoan = () => {
     const params = new URLSearchParams({
@@ -61,7 +82,7 @@ const LoanSlider = () => {
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-4">Choose Your Loan Amount</h2>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Slide to select your desired loan amount and see how your plan changes in real-time.
+          Slide to select your desired loan amount and see collateral requirements in real-time.
         </p>
       </div>
 
@@ -70,10 +91,17 @@ const LoanSlider = () => {
         <Card className="mb-8">
           <CardHeader className="text-center">
             <div className="space-y-2">
-              <div className="text-5xl font-bold text-primary">
-                {formatAmount(loanAmount[0])}
+              <div className="flex items-center justify-center space-x-2">
+                <DollarSign className="w-8 h-8 text-primary" />
+                <div className="text-5xl font-bold text-primary">
+                  {formatAmount(loanAmount[0])}
+                </div>
               </div>
-              <div className="text-muted-foreground">Loan Amount</div>
+              <div className="text-muted-foreground">USDC Loan Amount</div>
+              <div className="flex items-center justify-center space-x-1 text-sm text-muted-foreground">
+                <Info className="w-4 h-4" />
+                <span>Loans are disbursed in USDC stablecoin</span>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -106,6 +134,38 @@ const LoanSlider = () => {
                 </Button>
               ))}
             </div>
+
+            {/* Collateral Requirements Preview */}
+            <Card className="bg-muted/30">
+              <CardContent className="p-4">
+                <div className="text-center mb-3">
+                  <div className="text-sm font-medium text-muted-foreground mb-1">
+                    Collateral Required ({currentTier.collateralRatio} ratio)
+                  </div>
+                  <div className="text-2xl font-bold text-primary">
+                    ${requiredCollateralValue.toLocaleString()}
+                  </div>
+                </div>
+                <Separator className="mb-3" />
+                <div className="text-xs text-muted-foreground mb-2 text-center">
+                  Equivalent amounts in popular cryptocurrencies:
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-center text-sm">
+                  <div>
+                    <div className="font-medium text-orange-600">BTC</div>
+                    <div>{getCollateralAmount('BTC', cryptoPrices.BTC)}</div>
+                  </div>
+                  <div>
+                    <div className="font-medium text-blue-600">ETH</div>
+                    <div>{getCollateralAmount('ETH', cryptoPrices.ETH)}</div>
+                  </div>
+                  <div>
+                    <div className="font-medium text-green-600">USDC</div>
+                    <div>{getCollateralAmount('USDC', cryptoPrices.USDC)}</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </CardContent>
         </Card>
 
@@ -154,7 +214,7 @@ const LoanSlider = () => {
 
             <div className="pt-4">
               <Button size="lg" className="w-full" onClick={handleGetLoan}>
-                Get ${formatAmount(loanAmount[0])} Loan
+                Get ${formatAmount(loanAmount[0])} USDC Loan
               </Button>
             </div>
           </CardContent>
