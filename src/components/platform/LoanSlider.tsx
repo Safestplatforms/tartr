@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { DollarSign, Info } from "lucide-react";
+import { DollarSign, Info, Wallet, AlertCircle } from "lucide-react";
+import { useWalletBalance } from "@/hooks/useWalletBalance";
 
 const LoanSlider = () => {
-  const [loanAmount, setLoanAmount] = useState([10000]);
+  const { balances, cryptoPrices, isLoading, totalValue, maxBorrowable, getAssetValue } = useWalletBalance();
+  const [loanAmount, setLoanAmount] = useState([Math.min(10000, maxBorrowable)]);
 
   // Define loan tiers based on amount
   const getLoanTier = (amount: number) => {
@@ -55,12 +57,9 @@ const LoanSlider = () => {
   const collateralRatioNum = parseInt(currentTier.collateralRatio) / 100;
   const requiredCollateralValue = loanAmount[0] * collateralRatioNum;
 
-  // Sample crypto prices (in a real app, these would come from an API)
-  const cryptoPrices = {
-    BTC: 45000,
-    ETH: 2800,
-    USDC: 1
-  };
+  // Check if user has enough collateral for requested amount
+  const hasEnoughCollateral = totalValue >= requiredCollateralValue;
+  const utilizationRate = totalValue > 0 ? (requiredCollateralValue / totalValue * 100) : 0;
 
   const getCollateralAmount = (crypto: string, price: number) => {
     const amount = requiredCollateralValue / price;
@@ -77,12 +76,78 @@ const LoanSlider = () => {
     window.location.href = `/platform/apply?${params.toString()}`;
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading wallet balance...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
+      {/* Wallet Overview */}
+      <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Wallet className="w-5 h-5 text-primary" />
+              <CardTitle className="text-lg">Your Wallet Overview</CardTitle>
+            </div>
+            <Badge variant="outline" className="text-green-600 border-green-600">
+              Connected
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <div className="text-2xl font-bold text-primary mb-2">
+                ${totalValue.toLocaleString()}
+              </div>
+              <div className="text-sm text-muted-foreground mb-4">Total Portfolio Value</div>
+              
+              <div className="space-y-2">
+                {Object.entries(balances).map(([crypto, amount]) => (
+                  <div key={crypto} className="flex justify-between text-sm">
+                    <span className="font-medium">{crypto}:</span>
+                    <span>
+                      {amount.toFixed(crypto.includes('USD') ? 0 : 4)} 
+                      <span className="text-muted-foreground ml-1">
+                        (${getAssetValue(crypto, amount).toLocaleString()})
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <div className="text-2xl font-bold text-green-600 mb-2">
+                ${maxBorrowable.toLocaleString()}
+              </div>
+              <div className="text-sm text-muted-foreground mb-4">Max Available to Borrow (80% LTV)</div>
+              
+              {maxBorrowable === 0 && (
+                <div className="flex items-start space-x-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
+                  <div className="text-sm text-yellow-800">
+                    Add crypto assets to your wallet to start borrowing
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-4">Choose Your Loan Amount</h2>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Slide to select your desired loan amount and see collateral requirements in real-time.
+          Based on your wallet balance, you can borrow up to ${maxBorrowable.toLocaleString()} USDC.
         </p>
       </div>
 
@@ -109,42 +174,68 @@ const LoanSlider = () => {
               <Slider
                 value={loanAmount}
                 onValueChange={setLoanAmount}
-                max={1000000}
+                max={Math.max(maxBorrowable, 1000)}
                 min={1000}
                 step={1000}
                 className="w-full"
+                disabled={maxBorrowable === 0}
               />
               <div className="flex justify-between text-sm text-muted-foreground mt-2">
                 <span>$1K</span>
-                <span>$1M+</span>
+                <span>${maxBorrowable > 0 ? formatAmount(maxBorrowable) : '0'}</span>
               </div>
+              {maxBorrowable > 0 && (
+                <div className="text-center mt-2">
+                  <div className="text-xs text-muted-foreground">
+                    Wallet utilization: {utilizationRate.toFixed(1)}%
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Quick Amount Buttons */}
             <div className="flex flex-wrap gap-2 justify-center">
-              {[5000, 15000, 50000, 100000, 500000].map((amount) => (
+              {[5000, 15000, 50000, 100000, 500000]
+                .filter(amount => amount <= maxBorrowable)
+                .map((amount) => (
+                  <Button
+                    key={amount}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLoanAmount([amount])}
+                    className={loanAmount[0] === amount ? "bg-primary text-primary-foreground" : ""}
+                  >
+                    {formatAmount(amount)}
+                  </Button>
+                ))}
+              {maxBorrowable > 0 && (
                 <Button
-                  key={amount}
                   variant="outline"
                   size="sm"
-                  onClick={() => setLoanAmount([amount])}
-                  className={loanAmount[0] === amount ? "bg-primary text-primary-foreground" : ""}
+                  onClick={() => setLoanAmount([maxBorrowable])}
+                  className={loanAmount[0] === maxBorrowable ? "bg-primary text-primary-foreground" : ""}
                 >
-                  {formatAmount(amount)}
+                  Max ({formatAmount(maxBorrowable)})
                 </Button>
-              ))}
+              )}
             </div>
 
             {/* Collateral Requirements Preview */}
-            <Card className="bg-muted/30">
+            <Card className={`${hasEnoughCollateral ? 'bg-muted/30' : 'bg-red-50 border-red-200'}`}>
               <CardContent className="p-4">
                 <div className="text-center mb-3">
                   <div className="text-sm font-medium text-muted-foreground mb-1">
                     Collateral Required ({currentTier.collateralRatio} ratio)
                   </div>
-                  <div className="text-2xl font-bold text-primary">
+                  <div className={`text-2xl font-bold ${hasEnoughCollateral ? 'text-primary' : 'text-red-600'}`}>
                     ${requiredCollateralValue.toLocaleString()}
                   </div>
+                  {!hasEnoughCollateral && (
+                    <div className="flex items-center justify-center space-x-1 text-red-600 text-sm mt-1">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>Insufficient collateral</span>
+                    </div>
+                  )}
                 </div>
                 <Separator className="mb-3" />
                 <div className="text-xs text-muted-foreground mb-2 text-center">
@@ -163,6 +254,19 @@ const LoanSlider = () => {
                     <div className="font-medium text-green-600">USDC</div>
                     <div>{getCollateralAmount('USDC', cryptoPrices.USDC)}</div>
                   </div>
+                </div>
+                
+                <Separator className="my-3" />
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground mb-1">Your current portfolio</div>
+                  <div className="text-sm font-medium">
+                    ${totalValue.toLocaleString()} available as collateral
+                  </div>
+                  {hasEnoughCollateral && (
+                    <div className="text-xs text-green-600 mt-1">
+                      ✓ Sufficient collateral available
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -213,9 +317,24 @@ const LoanSlider = () => {
             </div>
 
             <div className="pt-4">
-              <Button size="lg" className="w-full" onClick={handleGetLoan}>
-                Get ${formatAmount(loanAmount[0])} USDC Loan
+              <Button 
+                size="lg" 
+                className="w-full" 
+                onClick={handleGetLoan}
+                disabled={!hasEnoughCollateral || maxBorrowable === 0}
+              >
+                {maxBorrowable === 0 
+                  ? "Add Crypto Assets to Borrow"
+                  : !hasEnoughCollateral 
+                    ? "Insufficient Collateral" 
+                    : `Get $${formatAmount(loanAmount[0])} USDC Loan`
+                }
               </Button>
+              {!hasEnoughCollateral && maxBorrowable > 0 && (
+                <p className="text-center text-sm text-muted-foreground mt-2">
+                  Reduce loan amount or add more crypto assets to your wallet
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
