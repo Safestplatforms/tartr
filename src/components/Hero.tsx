@@ -21,12 +21,12 @@ const Hero = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-fade-in [animation-delay:400ms]">
             <Link to="/platform">
               <Button size="lg" className="px-8 py-3 text-lg hover-scale">
-                Launch App
+                Start now
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="px-8 py-3 text-lg hover-scale">
-              Learn More
+              Contact Sales
             </Button>
           </div>
 
