@@ -1,21 +1,17 @@
-
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Wallet } from "lucide-react";
+import { DynamicWidget, useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import LoanSlider from "@/components/platform/LoanSlider";
 import LoansOverview from "@/components/platform/LoansOverview";
 import PortfolioTab from "@/components/platform/PortfolioTab";
 import { PlatformSidebar } from "@/components/platform/PlatformSidebar";
 
 const Platform = () => {
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [activeTab, setActiveTab] = useState("loans");
-
-  const handleConnectWallet = () => {
-    // This would typically open a wallet connection modal
-    setIsWalletConnected(true);
-  };
+  const { primaryWallet } = useDynamicContext();
+  
+  const isWalletConnected = !!primaryWallet;
 
   const renderContent = () => {
     if (!isWalletConnected) {
@@ -28,9 +24,9 @@ const Platform = () => {
           <p className="text-muted-foreground mb-6">
             To access the tartr platform and start borrowing against your crypto assets, please connect your wallet.
           </p>
-          <Button onClick={handleConnectWallet} size="lg">
-            Connect Wallet to Continue
-          </Button>
+          <div className="flex justify-center">
+            <DynamicWidget />
+          </div>
         </div>
       );
     }
@@ -70,17 +66,7 @@ const Platform = () => {
               </div>
               
               <div className="flex items-center space-x-4">
-                {isWalletConnected ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-sm text-muted-foreground">0x1234...5678</span>
-                  </div>
-                ) : (
-                  <Button onClick={handleConnectWallet} className="flex items-center space-x-2">
-                    <Wallet className="w-4 h-4" />
-                    <span>Connect Wallet</span>
-                  </Button>
-                )}
+                <DynamicWidget />
               </div>
             </div>
           </header>

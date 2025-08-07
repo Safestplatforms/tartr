@@ -1,9 +1,21 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Zap, TrendingUp } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { DynamicConnectButton, useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import GeometricBackground from "./GeometricBackground";
 
 const Hero = () => {
+  const navigate = useNavigate();
+  const { primaryWallet } = useDynamicContext();
+
+  // Redirect to platform when wallet connects
+  useEffect(() => {
+    if (primaryWallet) {
+      navigate('/platform');
+    }
+  }, [primaryWallet, navigate]);
+
   return (
     <section className="relative py-20 px-4 bg-gradient-to-b from-background to-background/50 overflow-hidden">
       <GeometricBackground />
@@ -19,12 +31,12 @@ const Hero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-fade-in [animation-delay:400ms]">
-            <Link to="/platform">
+            <DynamicConnectButton>
               <Button size="lg" className="px-8 py-3 text-lg hover-scale">
                 Start now
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-            </Link>
+            </DynamicConnectButton>
             <Link to="/contact-sales">
               <Button size="lg" variant="outline" className="px-8 py-3 text-lg hover-scale">
                 Contact Sales
