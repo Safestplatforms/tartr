@@ -29,9 +29,7 @@ const Header = () => {
 
         <div className="flex items-center">
           <Link to="/platform">
-            <Button variant="outline" size="sm" className="text-sm px-3 py-2 md:text-base md:px-4 md:py-2">
-              Connect Wallet
-            </Button>
+            <Button variant="outline">Connect Wallet</Button>
           </Link>
         </div>
       </div>

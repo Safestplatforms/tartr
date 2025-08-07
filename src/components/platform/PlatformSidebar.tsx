@@ -45,7 +45,7 @@ const menuItems = [
 export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: PlatformSidebarProps) {
   const { totalValue, maxBorrowable, balances, isLoading } = useWalletBalance();
   return (
-    <Sidebar className="w-64 md:w-72">
+    <Sidebar className="w-64">
       <SidebarHeader className="border-b border-border bg-background p-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground">
@@ -65,9 +65,9 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
       <SidebarContent>
         {/* Wallet Widget */}
         {isWalletConnected && (
-          <div className="p-3 md:p-4">
+          <div className="p-4">
             <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-              <CardContent className="p-3 md:p-4">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
                     <Wallet className="w-4 h-4 text-primary" />
@@ -83,16 +83,16 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
                     <div className="w-4 h-4 border border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
                   </div>
                 ) : (
-                  <div className="space-y-2 md:space-y-3">
+                  <div className="space-y-3">
                     <div>
-                      <div className="text-base md:text-lg font-bold text-primary">
+                      <div className="text-lg font-bold text-primary">
                         ${totalValue.toLocaleString()}
                       </div>
                       <div className="text-xs text-muted-foreground">Portfolio Value</div>
                     </div>
                     
                     <div>
-                      <div className="text-base md:text-lg font-bold text-green-600">
+                      <div className="text-lg font-bold text-green-600">
                         ${maxBorrowable.toLocaleString()}
                       </div>
                       <div className="text-xs text-muted-foreground">Available to Borrow</div>
