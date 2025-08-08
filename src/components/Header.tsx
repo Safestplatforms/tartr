@@ -1,18 +1,7 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { DynamicWidget, useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Header = () => {
-  const navigate = useNavigate();
-  const { primaryWallet } = useDynamicContext();
-
-  // Redirect to platform when wallet connects
-  useEffect(() => {
-    if (primaryWallet) {
-      navigate('/platform');
-    }
-  }, [primaryWallet, navigate]);
-
   return (
     <header className="border-b border-border bg-background">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -39,7 +28,11 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center">
-          <DynamicWidget />
+          <Link to="/platform">
+            <Button variant="outline" size="sm" className="text-sm px-3 py-2 md:text-base md:px-4 md:py-2">
+              Connect Wallet
+            </Button>
+          </Link>
         </div>
       </div>
     </header>
