@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Wallet } from "lucide-react";
-import { DynamicWidget, useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { ConnectButton, useActiveAccount } from "thirdweb/react";
+import { client, wallets } from "@/lib/thirdweb";
 import LoanSlider from "@/components/platform/LoanSlider";
 import LoansOverview from "@/components/platform/LoansOverview";
 import PortfolioTab from "@/components/platform/PortfolioTab";
@@ -9,9 +10,9 @@ import { PlatformSidebar } from "@/components/platform/PlatformSidebar";
 
 const Platform = () => {
   const [activeTab, setActiveTab] = useState("loans");
-  const { primaryWallet } = useDynamicContext();
+  const account = useActiveAccount();
   
-  const isWalletConnected = !!primaryWallet;
+  const isWalletConnected = !!account;
 
   const renderContent = () => {
     if (!isWalletConnected) {
@@ -25,7 +26,22 @@ const Platform = () => {
             To access the tartr platform and start borrowing against your crypto assets, please connect your wallet.
           </p>
           <div className="flex justify-center">
-            <DynamicWidget />
+            <ConnectButton
+              client={client}
+              wallets={wallets}
+              connectModal={{ size: "compact" }}
+              connectButton={{
+                style: {
+                  backgroundColor: "#000000",
+                  color: "#ffffff",
+                  border: "none",
+                  borderRadius: "12px",
+                  padding: "6px 10px",
+                  fontSize: "18px",
+                  fontWeight: "500",
+                }
+              }}
+              />
           </div>
         </div>
       );
@@ -66,7 +82,22 @@ const Platform = () => {
               </div>
               
               <div className="flex items-center space-x-4">
-                <DynamicWidget />
+                <ConnectButton
+                    client={client}
+                    wallets={wallets}
+                    connectModal={{ size: "compact" }}
+                    connectButton={{
+                      style: {
+                        backgroundColor: "#000000",
+                        color: "#ffffff",
+                        border: "none",
+                        borderRadius: "12px",
+                        padding: "6px 10px",
+                        fontSize: "18px",
+                        fontWeight: "500",
+                      }
+                    }}
+                    />
               </div>
             </div>
           </header>

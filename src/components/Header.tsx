@@ -1,17 +1,18 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { DynamicWidget, useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { ConnectButton, useActiveAccount } from "thirdweb/react";
+import { client, wallets } from "@/lib/thirdweb";
 
 const Header = () => {
   const navigate = useNavigate();
-  const { primaryWallet } = useDynamicContext();
+  const account = useActiveAccount();
 
   // Redirect to platform when wallet connects
   useEffect(() => {
-    if (primaryWallet) {
+    if (account) {
       navigate('/platform');
     }
-  }, [primaryWallet, navigate]);
+  }, [account, navigate]);
 
   return (
     <header className="border-b border-border bg-background">
@@ -39,7 +40,22 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center">
-          <DynamicWidget />
+         <ConnectButton
+          client={client}
+          wallets={wallets}
+          connectModal={{ size: "compact" }}
+          connectButton={{
+            style: {
+              backgroundColor: "#000000",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "12px",
+              padding: "6px 10px",
+              fontSize: "18px",
+              fontWeight: "500",
+            }
+          }}
+          />
         </div>
       </div>
     </header>
