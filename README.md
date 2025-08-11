@@ -1,73 +1,139 @@
-# Welcome to your Lovable project
+# Tartr - Crypto Lending Platform
 
-## Project info
+A modern, secure crypto lending platform that allows users to deposit cryptocurrency as collateral and borrow stablecoins instantly. Built with React, TypeScript, and thirdweb for seamless wallet integration.
 
-**URL**: https://lovable.dev/projects/b2fd1f4e-43f7-434a-8fd2-aa3d02192105
+## 🚀 Features
 
-## How can I edit this code?
+### Core Functionality
+- **Multi-Wallet Support**: Connect with 15+ wallet providers including MetaMask, Coinbase, Rainbow, and social logins ( Done )
+- **Instant Crypto Lending**: Deposit BTC, ETH as collateral to borrow USDC/USDT
+- **Real-time Health Monitoring**: Track loan health factors and liquidation risks
+- **Flexible Loan Terms**: Multiple loan tiers (Starter, Growth, Professional, Enterprise)
+- **Non-Custodial**: Users maintain full control of their assets
 
-There are several ways of editing your application.
+## 🛠 Tech Stack
 
-**Use Lovable**
+### Frontend
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **UI Components**: Shadcn/ui + Radix UI
+- **Icons**: Lucide React
+- **Charts**: Recharts
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b2fd1f4e-43f7-434a-8fd2-aa3d02192105) and start prompting.
+### Blockchain & Wallets
+- **Wallet Integration**: Thirdweb SDK
+- **Supported Wallets**: MetaMask, Coinbase, Rainbow, Social Logins (Google, Discord, etc.)
+- **Networks**: Ethereum, Sepolia (Testnet)
 
-Changes made via Lovable will be committed automatically to this repo.
+### State Management & Routing
+- **State Management**: TanStack Query
+- **Routing**: React Router DOM
+- **Forms**: React Hook Form with Zod validation
 
-**Use your preferred IDE**
+### Development Tools
+- **Package Manager**: npm/yarn/pnpm
+- **Linting**: ESLint
+- **Type Checking**: TypeScript
+- **Notifications**: Sonner Toast
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 📦 Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prerequisites
+- Node.js 18+ 
+- npm, yarn, or pnpm
+- Git
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### Clone the Repository
+```bash
+git clone https://github.com/GurEtun/tartr-simple-borrow.git
+cd tartr-simple-borrow
 ```
 
-**Edit a file directly in GitHub**
+### Install Dependencies
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Environment Setup
+Create a `.env` file in the root directory:
 
-**Use GitHub Codespaces**
+```env
+# Thirdweb Configuration
+VITE_THIRDWEB_CLIENT_ID=your_thirdweb_client_id
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```
 
-## What technologies are used for this project?
+### Get Thirdweb Client ID
+1. Visit [thirdweb dashboard](https://thirdweb.com/dashboard)
+2. Create a new project or use existing one
+3. Copy your Client ID from the project settings
+4. Add it to your `.env` file
 
-This project is built with:
+## 🚀 Getting Started
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Development Server
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+```
 
-## How can I deploy this project?
+Visit `http://localhost:8080` to view the application.
 
-Simply open [Lovable](https://lovable.dev/projects/b2fd1f4e-43f7-434a-8fd2-aa3d02192105) and click on Share -> Publish.
+### Build for Production
+```bash
+npm run build
+# or
+yarn build
+# or
+pnpm build
+```
 
-## Can I connect a custom domain to my Lovable project?
+### Preview Production Build
+```bash
+npm run preview
+# or
+yarn preview
+# or
+pnpm preview
+```
 
-Yes, you can!
+## 📁 Project Structure
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # Shadcn/ui components
+│   ├── platform/       # Platform-specific components
+│   ├── Header.tsx      # App header with wallet connection
+│   ├── Hero.tsx        # Landing page hero section
+│   └── ...             # Other components
+├── pages/              # Page components
+│   ├── Index.tsx       # Landing page
+│   ├── Platform.tsx    # Main platform dashboard
+│   ├── LoanApplication.tsx
+│   └── ...
+├── hooks/              # Custom React hooks
+│   ├── useWalletBalance.tsx
+│   └── use-mobile.tsx
+├── lib/                # Utility libraries
+│   ├── thirdweb.ts     # Thirdweb configuration
+│   └── utils.ts        # General utilities
+├── styles/             # CSS files
+└── App.tsx             # Main app component
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## 📚 Resources
+
+- [Thirdweb Documentation](https://portal.thirdweb.com/)
+- [React Documentation](https://react.dev/)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Shadcn/ui Documentation](https://ui.shadcn.com/)
