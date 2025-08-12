@@ -1,18 +1,33 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { DollarSign, Info, Wallet, AlertCircle } from "lucide-react";
-import { useWalletBalance } from "@/hooks/useWalletBalance";
+import { DollarSign, Info, Wallet, AlertCircle, Loader2 } from "lucide-react";
+import { useAaveData } from "@/hooks/useAaveData";
+import { useAaveTransactions } from "@/hooks/useAaveTransactions";
+import { SUPPORTED_ASSETS } from "@/lib/aave/config";
+import { toast } from "sonner";
 
 const LoanSlider = () => {
-  const { balances, cryptoPrices, isLoading, totalValue, maxBorrowable, getAssetValue } = useWalletBalance();
-  const [loanAmount, setLoanAmount] = useState([Math.min(10000, maxBorrowable)]);
+  const { 
+    aaveBalances, 
+    maxBorrowable, 
+    totalValue, 
+    isLoading, 
+    healthFactor, 
+    totalSupplied, 
+    totalBorrowed 
+  } = useAaveData();
+  
+  const { borrow, borrowState } = useAaveTransactions();
+  
+  const [loanAmount, setLoanAmount] = useState([Math.min(1000, maxBorrowable)]);
+  const [selectedBorrowAsset, setSelectedBorrowAsset] = useState('USDC');
+  const [isBorrowing, setIsBorrowing] = useState(false);
 
-  // Define loan tiers based on amount
+  // Define loan tiers based on amount (same as before but now with real data)
   const getLoanTier = (amount: number) => {
     if (amount <= 5000) return {
       name: "Starter",
@@ -53,27 +68,36 @@ const LoanSlider = () => {
   const currentTier = getLoanTier(loanAmount[0]);
   const isPopular = currentTier.name === "Growth";
   
-  // Calculate collateral requirements
-  const collateralRatioNum = parseInt(currentTier.collateralRatio) / 100;
-  const requiredCollateralValue = loanAmount[0] * collateralRatioNum;
+  // Real borrowing capacity checks
+  const hasCollateral = totalSupplied > 0;
+  const canBorrowAmount = loanAmount[0] <= maxBorrowable;
+  const borrowAsset = SUPPORTED_ASSETS[selectedBorrowAsset as keyof typeof SUPPORTED_ASSETS];
 
-  // Check if user has enough collateral for requested amount
-  const hasEnoughCollateral = totalValue >= requiredCollateralValue;
-  const utilizationRate = totalValue > 0 ? (requiredCollateralValue / totalValue * 100) : 0;
+  const handleBorrow = async () => {
+    if (!canBorrowAmount) {
+      toast.error('Insufficient borrowing capacity');
+      return;
+    }
 
-  const getCollateralAmount = (crypto: string, price: number) => {
-    const amount = requiredCollateralValue / price;
-    if (amount < 1) return amount.toFixed(4);
-    if (amount < 1000) return amount.toFixed(2);
-    return amount.toFixed(0);
-  };
+    if (!hasCollateral) {
+      toast.error('Please supply collateral first');
+      return;
+    }
 
-  const handleGetLoan = () => {
-    const params = new URLSearchParams({
-      amount: loanAmount[0].toString(),
-      plan: currentTier.name
-    });
-    window.location.href = `/platform/apply?${params.toString()}`;
+    setIsBorrowing(true);
+    
+    try {
+      await borrow(selectedBorrowAsset, loanAmount[0]);
+      
+      if (borrowState.txHash) {
+        toast.success(`Successfully borrowed ${loanAmount[0]} ${selectedBorrowAsset}`);
+      }
+    } catch (error) {
+      console.error('Borrow failed:', error);
+      toast.error('Failed to borrow');
+    } finally {
+      setIsBorrowing(false);
+    }
   };
 
   if (isLoading) {
@@ -81,8 +105,51 @@ const LoanSlider = () => {
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading wallet balance...</p>
+          <p className="text-muted-foreground">Loading Aave data...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Show different UI based on user's Aave position
+  if (!hasCollateral && maxBorrowable === 0) {
+    return (
+      <div className="space-y-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold mb-4">Start Your DeFi Journey</h2>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            To borrow from Aave, you first need to supply collateral. Add crypto to your wallet and supply it to Aave to start borrowing.
+          </p>
+        </div>
+
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="p-8 text-center">
+            <Wallet className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-4">No Collateral Detected</h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="text-left">
+                  <p className="text-muted-foreground">Portfolio Value:</p>
+                  <p className="font-semibold">${totalValue.toLocaleString()}</p>
+                </div>
+                <div className="text-left">
+                  <p className="text-muted-foreground">Borrowing Capacity:</p>
+                  <p className="font-semibold">${maxBorrowable.toLocaleString()}</p>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium text-blue-800 mb-2">How to get started:</h4>
+                <ol className="text-sm text-blue-700 text-left space-y-1">
+                  <li>1. Add ETH or WBTC to your wallet</li>
+                  <li>2. Go to the Portfolio tab</li>
+                  <li>3. Supply your crypto as collateral to Aave</li>
+                  <li>4. Return here to borrow against your collateral</li>
+                </ol>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -90,13 +157,52 @@ const LoanSlider = () => {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="text-3xl font-bold mb-4">Choose Your Loan Amount</h2>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Based on your wallet balance, you can borrow up to ${maxBorrowable.toLocaleString()} USDC.
-        </p>
+        <h2 className="text-3xl font-bold mb-4">Borrow from Aave</h2>
+        <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto text-sm">
+          <div>
+            <p className="text-muted-foreground">Supplied</p>
+            <p className="font-semibold text-blue-600">${totalSupplied.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Borrowed</p>
+            <p className="font-semibold text-orange-600">${totalBorrowed.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Available</p>
+            <p className="font-semibold text-green-600">${maxBorrowable.toLocaleString()}</p>
+          </div>
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto">
+        {/* Borrow Asset Selection */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Select Borrow Asset</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              {['USDC', 'USDT'].map((asset) => (
+                <Card
+                  key={asset}
+                  className={`cursor-pointer transition-all ${
+                    selectedBorrowAsset === asset ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
+                  }`}
+                  onClick={() => setSelectedBorrowAsset(asset)}
+                >
+                  <CardContent className="p-4 text-center">
+                    <div className="text-lg font-semibold">{asset}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {SUPPORTED_ASSETS[asset as keyof typeof SUPPORTED_ASSETS]?.name}
+                    </div>
+                    <Badge variant="secondary" className="mt-2">8.5% APY</Badge>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Loan Amount Slider */}
         <Card className="mb-8">
           <CardHeader className="text-center">
@@ -107,10 +213,10 @@ const LoanSlider = () => {
                   {formatAmount(loanAmount[0])}
                 </div>
               </div>
-              <div className="text-muted-foreground">USDC Loan Amount</div>
+              <div className="text-muted-foreground">{selectedBorrowAsset} Loan Amount</div>
               <div className="flex items-center justify-center space-x-1 text-sm text-muted-foreground">
                 <Info className="w-4 h-4" />
-                <span>Loans are disbursed in USDC stablecoin</span>
+                <span>Powered by Aave Protocol</span>
               </div>
             </div>
           </CardHeader>
@@ -120,27 +226,20 @@ const LoanSlider = () => {
                 value={loanAmount}
                 onValueChange={setLoanAmount}
                 max={Math.max(maxBorrowable, 1000)}
-                min={1000}
-                step={1000}
+                min={100}
+                step={100}
                 className="w-full"
                 disabled={maxBorrowable === 0}
               />
               <div className="flex justify-between text-sm text-muted-foreground mt-2">
-                <span>$1K</span>
+                <span>$100</span>
                 <span>${maxBorrowable > 0 ? formatAmount(maxBorrowable) : '0'}</span>
               </div>
-              {maxBorrowable > 0 && (
-                <div className="text-center mt-2">
-                  <div className="text-xs text-muted-foreground">
-                    Wallet utilization: {utilizationRate.toFixed(1)}%
-                  </div>
-                </div>
-              )}
             </div>
             
             {/* Quick Amount Buttons */}
             <div className="flex flex-wrap gap-2 justify-center">
-              {[5000, 15000, 50000, 100000, 500000]
+              {[1000, 5000, 10000, 25000]
                 .filter(amount => amount <= maxBorrowable)
                 .map((amount) => (
                   <Button
@@ -165,120 +264,53 @@ const LoanSlider = () => {
               )}
             </div>
 
-            {/* Collateral Requirements Preview */}
-            <Card className={`${hasEnoughCollateral ? 'bg-muted/30' : 'bg-red-50 border-red-200'}`}>
-              <CardContent className="p-4">
-                <div className="text-center mb-3">
-                  <div className="text-sm font-medium text-muted-foreground mb-1">
-                    Collateral Required ({currentTier.collateralRatio} ratio)
-                  </div>
-                  <div className={`text-2xl font-bold ${hasEnoughCollateral ? 'text-primary' : 'text-red-600'}`}>
-                    ${requiredCollateralValue.toLocaleString()}
-                  </div>
-                  {!hasEnoughCollateral && (
-                    <div className="flex items-center justify-center space-x-1 text-red-600 text-sm mt-1">
-                      <AlertCircle className="w-4 h-4" />
-                      <span>Insufficient collateral</span>
-                    </div>
-                  )}
+            {/* Health Factor Warning */}
+            {healthFactor > 0 && healthFactor < 1.5 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 text-yellow-800">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="font-medium">Health Factor: {healthFactor.toFixed(2)}</span>
                 </div>
-                <Separator className="mb-3" />
-                <div className="text-xs text-muted-foreground mb-2 text-center">
-                  Equivalent amounts in popular cryptocurrencies:
-                </div>
-                <div className="grid grid-cols-3 gap-3 text-center text-sm">
-                  <div>
-                    <div className="font-medium text-orange-600">BTC</div>
-                    <div>{getCollateralAmount('BTC', cryptoPrices.BTC)}</div>
-                  </div>
-                  <div>
-                    <div className="font-medium text-blue-600">ETH</div>
-                    <div>{getCollateralAmount('ETH', cryptoPrices.ETH)}</div>
-                  </div>
-                  <div>
-                    <div className="font-medium text-green-600">USDC</div>
-                    <div>{getCollateralAmount('USDC', cryptoPrices.USDC)}</div>
-                  </div>
-                </div>
-                
-                <Separator className="my-3" />
-                <div className="text-center">
-                  <div className="text-xs text-muted-foreground mb-1">Your current portfolio</div>
-                  <div className="text-sm font-medium">
-                    ${totalValue.toLocaleString()} available as collateral
-                  </div>
-                  {hasEnoughCollateral && (
-                    <div className="text-xs text-green-600 mt-1">
-                      ✓ Sufficient collateral available
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                <p className="text-sm text-yellow-700 mt-1">
+                  Your health factor is low. Consider adding more collateral before borrowing.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Dynamic Plan Display */}
-        <Card className={`relative ${isPopular ? 'border-primary ring-2 ring-primary/20' : ''}`}>
-          {isPopular && (
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <Badge className="bg-primary text-primary-foreground">
-                Most Popular
-              </Badge>
-            </div>
-          )}
-          
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl">{currentTier.name} Plan</CardTitle>
-            <p className="text-muted-foreground">Perfect for your loan amount</p>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
-            <div className="grid md:grid-cols-3 gap-6 text-center">
-              <div>
-                <div className="text-2xl font-bold text-primary">{currentTier.apr}</div>
-                <div className="text-sm text-muted-foreground">APR from</div>
+        {/* Borrow Action */}
+        <Card>
+          <CardContent className="p-6 text-center">
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                You're about to borrow <strong>{loanAmount[0].toLocaleString()} {selectedBorrowAsset}</strong> from Aave
               </div>
-              <div>
-                <div className="text-2xl font-bold">{currentTier.term}</div>
-                <div className="text-sm text-muted-foreground">Loan term</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold">{currentTier.collateralRatio}</div>
-                <div className="text-sm text-muted-foreground">Min. collateral ratio</div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="font-medium">Features included:</div>
-              <div className="grid md:grid-cols-2 gap-2">
-                {currentTier.features.map((feature, index) => (
-                  <div key={index} className="flex items-center space-x-2 text-sm">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span>{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="pt-4">
+              
               <Button 
                 size="lg" 
-                className="w-full" 
-                onClick={handleGetLoan}
-                disabled={!hasEnoughCollateral || maxBorrowable === 0}
+                className="w-full max-w-md" 
+                onClick={handleBorrow}
+                disabled={!canBorrowAmount || !hasCollateral || isBorrowing || borrowState.isLoading}
               >
-                {maxBorrowable === 0 
-                  ? "Add Crypto Assets to Borrow"
-                  : !hasEnoughCollateral 
-                    ? "Insufficient Collateral" 
-                    : `Get $${formatAmount(loanAmount[0])} USDC Loan`
-                }
+                {isBorrowing || borrowState.isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Borrowing from Aave...
+                  </>
+                ) : !hasCollateral ? (
+                  "Supply Collateral First"
+                ) : !canBorrowAmount ? (
+                  "Insufficient Borrowing Capacity"
+                ) : (
+                  `Borrow ${formatAmount(loanAmount[0])} ${selectedBorrowAsset}`
+                )}
               </Button>
-              {!hasEnoughCollateral && maxBorrowable > 0 && (
-                <p className="text-center text-sm text-muted-foreground mt-2">
-                  Reduce loan amount or add more crypto assets to your wallet
-                </p>
+
+              {borrowState.error && (
+                <div className="text-sm text-red-600">
+                  Error: {borrowState.error}
+                </div>
               )}
             </div>
           </CardContent>
@@ -287,7 +319,7 @@ const LoanSlider = () => {
 
       <div className="text-center pt-4">
         <p className="text-muted-foreground text-sm">
-          All plans include: Multi-asset collateral support • Real-time liquidation protection • Insurance coverage up to $250k
+          Powered by Aave Protocol • Decentralized • Non-custodial • Transparent
         </p>
       </div>
     </div>
