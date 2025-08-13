@@ -1,5 +1,3 @@
-// Minimal Aave V3 ABIs for MVP functionality
-
 export const AAVE_POOL_ABI = [
   // Supply function
   {
@@ -147,6 +145,60 @@ export const AAVE_UI_POOL_DATA_PROVIDER_ABI = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  }
+] as const;
+
+// WETH Gateway ABI for ETH deposits/withdrawals
+export const WETH_GATEWAY_ABI = [
+  // Deposit ETH and supply to Aave
+  {
+    "inputs": [
+      {"internalType": "address", "name": "pool", "type": "address"},
+      {"internalType": "address", "name": "onBehalfOf", "type": "address"},
+      {"internalType": "uint16", "name": "referralCode", "type": "uint16"}
+    ],
+    "name": "depositETH",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  // Withdraw WETH as ETH
+  {
+    "inputs": [
+      {"internalType": "address", "name": "pool", "type": "address"},
+      {"internalType": "uint256", "name": "amount", "type": "uint256"},
+      {"internalType": "address", "name": "to", "type": "address"}
+    ],
+    "name": "withdrawETH",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  // Borrow WETH as ETH
+  {
+    "inputs": [
+      {"internalType": "address", "name": "pool", "type": "address"},
+      {"internalType": "uint256", "name": "amount", "type": "uint256"},
+      {"internalType": "uint256", "name": "interestRateMode", "type": "uint256"},
+      {"internalType": "uint16", "name": "referralCode", "type": "uint16"}
+    ],
+    "name": "borrowETH",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  // Repay ETH loan
+  {
+    "inputs": [
+      {"internalType": "address", "name": "pool", "type": "address"},
+      {"internalType": "uint256", "name": "amount", "type": "uint256"},
+      {"internalType": "uint256", "name": "interestRateMode", "type": "uint256"},
+      {"internalType": "address", "name": "onBehalfOf", "type": "address"}
+    ],
+    "name": "repayETH",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   }
 ] as const;

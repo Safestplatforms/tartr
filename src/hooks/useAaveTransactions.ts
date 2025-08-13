@@ -3,7 +3,7 @@ import { useActiveAccount, useSendTransaction } from 'thirdweb/react';
 import { getContract, prepareContractCall } from 'thirdweb';
 import { client } from '@/lib/thirdweb';
 import { AAVE_CONFIG, SUPPORTED_ASSETS } from '@/lib/aave/config';
-import { AAVE_POOL_ABI, ERC20_ABI } from '@/lib/aave/abis';
+import { AAVE_POOL_ABI, ERC20_ABI, WETH_GATEWAY_ABI } from '@/lib/aave/abis';
 import { ethereum } from 'thirdweb/chains';
 import { toast } from 'sonner';
 
@@ -16,7 +16,7 @@ interface TransactionState {
 export const useAaveTransactions = () => {
   const account = useActiveAccount();
   const { mutate: sendTransaction } = useSendTransaction();
-  
+
   const [supplyState, setSupplyState] = useState<TransactionState>({
     isLoading: false,
     error: null,
@@ -29,13 +29,13 @@ export const useAaveTransactions = () => {
     txHash: null,
   });
 
-  const [repayState, setRepayState] = useState<TransactionState>({
+  const [withdrawState, setWithdrawState] = useState<TransactionState>({
     isLoading: false,
     error: null,
     txHash: null,
   });
 
-  const [withdrawState, setWithdrawState] = useState<TransactionState>({
+  const [repayState, setRepayState] = useState<TransactionState>({
     isLoading: false,
     error: null,
     txHash: null,
@@ -49,7 +49,15 @@ export const useAaveTransactions = () => {
     abi: AAVE_POOL_ABI,
   });
 
-  // Helper function to get ERC20 contract
+  // WETH Gateway contract for ETH deposits
+  const wethGatewayContract = getContract({
+    client,
+    chain: ethereum,
+    address: AAVE_CONFIG.WETH_GATEWAY,
+    abi: WETH_GATEWAY_ABI,
+  });
+
+  // Helper to get ERC20 contract
   const getERC20Contract = (tokenAddress: string) => {
     return getContract({
       client,
@@ -67,7 +75,31 @@ export const useAaveTransactions = () => {
     return BigInt(scaledAmount);
   };
 
-  // Supply (Deposit) function
+  // Token approval helper
+  const approveToken = async (tokenAddress: string, spenderAddress: string, amount: bigint) => {
+    const tokenContract = getERC20Contract(tokenAddress);
+    
+    const approveTx = prepareContractCall({
+      contract: tokenContract,
+      method: "approve",
+      params: [spenderAddress, amount],
+    });
+
+    return new Promise((resolve, reject) => {
+      sendTransaction(approveTx, {
+        onSuccess: (result) => {
+          console.log('Token approved:', result.transactionHash);
+          resolve(result);
+        },
+        onError: (error) => {
+          console.error('Token approval failed:', error);
+          reject(error);
+        },
+      });
+    });
+  };
+
+  // Supply (Deposit) function - now supports ETH!
   const supply = async (assetSymbol: string, amount: number) => {
     if (!account?.address) {
       toast.error('Please connect your wallet');
@@ -85,17 +117,49 @@ export const useAaveTransactions = () => {
     try {
       const amountBigInt = parseAmount(amount, asset.decimals);
 
-      // For ETH, we would use WETH Gateway, but for simplicity in MVP, let's handle ERC20 tokens first
+      // Handle ETH deposits via WETH Gateway
       if (assetSymbol === 'ETH') {
-        toast.error('ETH deposits will be implemented with WETH Gateway');
-        setSupplyState({ isLoading: false, error: 'ETH not supported yet', txHash: null });
+        console.log(`Depositing ${amount} ETH via WETH Gateway...`);
+        
+        const depositTx = prepareContractCall({
+          contract: wethGatewayContract,
+          method: "depositETH",
+          params: [
+            AAVE_CONFIG.POOL,    // pool address
+            account.address,     // onBehalfOf
+            0,                   // referralCode
+          ],
+          value: amountBigInt,   // Send ETH as value
+        });
+
+        // Execute ETH deposit transaction
+        sendTransaction(depositTx, {
+          onSuccess: (result) => {
+            setSupplyState({
+              isLoading: false,
+              error: null,
+              txHash: result.transactionHash,
+            });
+            toast.success(`Successfully supplied ${amount} ETH to Aave`);
+          },
+          onError: (error) => {
+            console.error('ETH deposit failed:', error);
+            setSupplyState({
+              isLoading: false,
+              error: error.message || 'ETH deposit failed',
+              txHash: null,
+            });
+            toast.error('ETH deposit failed');
+          },
+        });
+
         return;
       }
 
-      // Step 1: Check and approve token if needed
-      const tokenContract = getERC20Contract(asset.address);
+      // Handle ERC20 token deposits (WBTC, etc.)
+      console.log(`Depositing ${amount} ${assetSymbol}...`);
 
-      // For now, approve max amount to avoid repeated approvals
+      // Step 1: Approve token spending
       const MAX_UINT256 = BigInt('115792089237316195423570985008687907853269984665640564039457584007913129639935');
       
       try {
@@ -110,7 +174,7 @@ export const useAaveTransactions = () => {
         return;
       }
 
-      // Step 2: Supply to Aave
+      // Step 2: Supply to Aave Pool
       const supplyTx = prepareContractCall({
         contract: poolContract,
         method: "supply",
@@ -118,11 +182,11 @@ export const useAaveTransactions = () => {
           asset.address,      // asset
           amountBigInt,       // amount
           account.address,    // onBehalfOf
-          0,                  // referralCode - uint16
+          0,                  // referralCode
         ],
       });
 
-      // Execute transaction
+      // Execute supply transaction
       sendTransaction(supplyTx, {
         onSuccess: (result) => {
           setSupplyState({
@@ -130,7 +194,7 @@ export const useAaveTransactions = () => {
             error: null,
             txHash: result.transactionHash,
           });
-          toast.success(`Successfully supplied ${amount} ${assetSymbol}`);
+          toast.success(`Successfully supplied ${amount} ${assetSymbol} to Aave`);
         },
         onError: (error) => {
           console.error('Supply transaction failed:', error);
@@ -179,8 +243,8 @@ export const useAaveTransactions = () => {
         params: [
           asset.address,      // asset
           amountBigInt,       // amount
-          BigInt(2),          // interestRateMode (2 = variable rate) - uint256
-          0,                  // referralCode - uint16
+          BigInt(2),          // interestRateMode (2 = variable rate)
+          0,                  // referralCode
           account.address,    // onBehalfOf
         ],
       });
@@ -217,6 +281,101 @@ export const useAaveTransactions = () => {
     }
   };
 
+  // Withdraw function - supports ETH via WETH Gateway
+  const withdraw = async (assetSymbol: string, amount: number) => {
+    if (!account?.address) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+
+    const asset = SUPPORTED_ASSETS[assetSymbol as keyof typeof SUPPORTED_ASSETS];
+    if (!asset) {
+      toast.error('Unsupported asset');
+      return;
+    }
+
+    setWithdrawState({ isLoading: true, error: null, txHash: null });
+
+    try {
+      const amountBigInt = parseAmount(amount, asset.decimals);
+
+      // Handle ETH withdrawals via WETH Gateway
+      if (assetSymbol === 'ETH') {
+        const withdrawTx = prepareContractCall({
+          contract: wethGatewayContract,
+          method: "withdrawETH",
+          params: [
+            AAVE_CONFIG.POOL,   // pool
+            amountBigInt,       // amount
+            account.address,    // to
+          ],
+        });
+
+        sendTransaction(withdrawTx, {
+          onSuccess: (result) => {
+            setWithdrawState({
+              isLoading: false,
+              error: null,
+              txHash: result.transactionHash,
+            });
+            toast.success(`Successfully withdrew ${amount} ETH from Aave`);
+          },
+          onError: (error) => {
+            console.error('ETH withdrawal failed:', error);
+            setWithdrawState({
+              isLoading: false,
+              error: error.message || 'ETH withdrawal failed',
+              txHash: null,
+            });
+            toast.error('ETH withdrawal failed');
+          },
+        });
+
+        return;
+      }
+
+      // Handle ERC20 withdrawals
+      const withdrawTx = prepareContractCall({
+        contract: poolContract,
+        method: "withdraw",
+        params: [
+          asset.address,      // asset
+          amountBigInt,       // amount
+          account.address,    // to
+        ],
+      });
+
+      sendTransaction(withdrawTx, {
+        onSuccess: (result) => {
+          setWithdrawState({
+            isLoading: false,
+            error: null,
+            txHash: result.transactionHash,
+          });
+          toast.success(`Successfully withdrew ${amount} ${assetSymbol}`);
+        },
+        onError: (error) => {
+          console.error('Withdraw transaction failed:', error);
+          setWithdrawState({
+            isLoading: false,
+            error: error.message || 'Transaction failed',
+            txHash: null,
+          });
+          toast.error('Withdraw transaction failed');
+        },
+      });
+
+    } catch (error) {
+      console.error('Withdraw error:', error);
+      setWithdrawState({
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        txHash: null,
+      });
+      toast.error('Failed to prepare withdraw transaction');
+    }
+  };
+
   // Repay function
   const repay = async (assetSymbol: string, amount: number) => {
     if (!account?.address) {
@@ -235,19 +394,21 @@ export const useAaveTransactions = () => {
     try {
       const amountBigInt = parseAmount(amount, asset.decimals);
 
-      // First approve the token for repayment
-      const MAX_UINT256 = BigInt('115792089237316195423570985008687907853269984665640564039457584007913129639935');
-      
-      try {
-        await approveToken(asset.address, AAVE_CONFIG.POOL, MAX_UINT256);
-      } catch (approvalError) {
-        console.error('Token approval failed:', approvalError);
-        setRepayState({ 
-          isLoading: false, 
-          error: 'Token approval failed', 
-          txHash: null 
-        });
-        return;
+      // First approve the token for repayment (for ERC20 tokens)
+      if (assetSymbol !== 'ETH') {
+        const MAX_UINT256 = BigInt('115792089237316195423570985008687907853269984665640564039457584007913129639935');
+        
+        try {
+          await approveToken(asset.address, AAVE_CONFIG.POOL, MAX_UINT256);
+        } catch (approvalError) {
+          console.error('Token approval failed:', approvalError);
+          setRepayState({ 
+            isLoading: false, 
+            error: 'Token approval failed', 
+            txHash: null 
+          });
+          return;
+        }
       }
 
       // Prepare repay transaction
@@ -256,8 +417,8 @@ export const useAaveTransactions = () => {
         method: "repay",
         params: [
           asset.address,      // asset
-          amountBigInt,       // amount (use max uint256 for full repayment)
-          BigInt(2),          // interestRateMode (2 = variable rate) - uint256
+          amountBigInt,       // amount
+          BigInt(2),          // interestRateMode (2 = variable rate)
           account.address,    // onBehalfOf
         ],
       });
@@ -294,108 +455,14 @@ export const useAaveTransactions = () => {
     }
   };
 
-  // Withdraw function
-  const withdraw = async (assetSymbol: string, amount: number) => {
-    if (!account?.address) {
-      toast.error('Please connect your wallet');
-      return;
-    }
-
-    const asset = SUPPORTED_ASSETS[assetSymbol as keyof typeof SUPPORTED_ASSETS];
-    if (!asset) {
-      toast.error('Unsupported asset');
-      return;
-    }
-
-    setWithdrawState({ isLoading: true, error: null, txHash: null });
-
-    try {
-      const amountBigInt = parseAmount(amount, asset.decimals);
-
-      // Prepare withdraw transaction
-      const withdrawTx = prepareContractCall({
-        contract: poolContract,
-        method: "withdraw",
-        params: [
-          asset.address,      // asset
-          amountBigInt,       // amount (use max uint256 for full withdrawal)
-          account.address,    // to
-        ],
-      });
-
-      // Execute transaction
-      sendTransaction(withdrawTx, {
-        onSuccess: (result) => {
-          setWithdrawState({
-            isLoading: false,
-            error: null,
-            txHash: result.transactionHash,
-          });
-          toast.success(`Successfully withdrew ${amount} ${assetSymbol}`);
-        },
-        onError: (error) => {
-          console.error('Withdraw transaction failed:', error);
-          setWithdrawState({
-            isLoading: false,
-            error: error.message || 'Transaction failed',
-            txHash: null,
-          });
-          toast.error('Withdraw transaction failed');
-        },
-      });
-
-    } catch (error) {
-      console.error('Withdraw error:', error);
-      setWithdrawState({
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        txHash: null,
-      });
-      toast.error('Failed to prepare withdraw transaction');
-    }
-  };
-
-  // Approve token function (helper for ERC20 approvals)
-  const approveToken = async (tokenAddress: string, spenderAddress: string, amount: bigint): Promise<void> => {
-    if (!account?.address) throw new Error('No account connected');
-
-    const tokenContract = getERC20Contract(tokenAddress);
-    
-    const approveTx = prepareContractCall({
-      contract: tokenContract,
-      method: "approve",
-      params: [spenderAddress, amount],
-    });
-
-    return new Promise((resolve, reject) => {
-      sendTransaction(approveTx, {
-        onSuccess: (result) => {
-          toast.success('Token approval successful');
-          resolve();
-        },
-        onError: (error) => {
-          toast.error('Token approval failed');
-          reject(error);
-        },
-      });
-    });
-  };
-
   return {
-    // Transaction functions
     supply,
     borrow,
-    repay,
     withdraw,
-    approveToken,
-    
-    // Transaction states
+    repay,
     supplyState,
     borrowState,
-    repayState,
     withdrawState,
-    
-    // Helper to check if any transaction is loading
-    isAnyTransactionLoading: supplyState.isLoading || borrowState.isLoading || repayState.isLoading || withdrawState.isLoading,
+    repayState,
   };
 };

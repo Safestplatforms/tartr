@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Wallet } from "lucide-react";
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
@@ -9,10 +10,19 @@ import PortfolioTab from "@/components/platform/PortfolioTab";
 import { PlatformSidebar } from "@/components/platform/PlatformSidebar";
 
 const Platform = () => {
-  const [activeTab, setActiveTab] = useState("loans");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState("portfolio"); 
   const account = useActiveAccount();
   
   const isWalletConnected = !!account;
+
+  // Read URL query parameter on mount to set initial tab
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl && ['loans', 'borrow', 'portfolio'].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams]);
 
   const renderContent = () => {
     if (!isWalletConnected) {
@@ -41,7 +51,7 @@ const Platform = () => {
                   fontWeight: "500",
                 }
               }}
-              />
+            />
           </div>
         </div>
       );
@@ -49,40 +59,44 @@ const Platform = () => {
 
     switch (activeTab) {
       case "loans":
-        return <LoansOverview />;
+        return <LoansOverview onTabChange={setActiveTab} />;
       case "borrow":
         return <LoanSlider />;
       case "portfolio":
         return <PortfolioTab />;
       default:
-        return <LoansOverview />;
+        return <LoansOverview onTabChange={setActiveTab} />;
     }
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <PlatformSidebar 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab}
-          isWalletConnected={isWalletConnected}
-        />
-        
-        <SidebarInset className="flex-1">
-          {/* Header */}
-          <header className="border-b border-border bg-background">
-            <div className="flex items-center justify-between px-4 py-4">
-              <div className="flex items-center space-x-4">
-                <SidebarTrigger />
-                <h1 className="text-lg font-semibold">
-                  {activeTab === "loans" && "My Loans"}
-                  {activeTab === "borrow" && "New Loan"}
-                  {activeTab === "portfolio" && "Portfolio"}
-                </h1>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                <ConnectButton
+    <SidebarProvider defaultOpen={true}>
+      <div className="min-h-screen w-full bg-background">
+        {/* Layout Container */}
+        <div className="flex h-screen">
+          {/* Sidebar */}
+          <PlatformSidebar 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab}
+            isWalletConnected={isWalletConnected}
+          />
+          
+          {/* Main Content - No SidebarInset, just proper margin */}
+          <div className="flex-1 flex flex-col min-w-0 md:ml-0">
+            {/* Header */}
+            <header className="border-b border-border bg-background z-10">
+              <div className="flex items-center justify-between px-4 py-4">
+                <div className="flex items-center space-x-4">
+                  <SidebarTrigger className="md:hidden" />
+                  <h1 className="text-lg font-semibold">
+                    {activeTab === "loans" && "My Loans"}
+                    {activeTab === "borrow" && "New Loan"}
+                    {activeTab === "portfolio" && "Portfolio"}
+                  </h1>
+                </div>
+                
+                <div className="flex items-center space-x-4">
+                  <ConnectButton
                     client={client}
                     wallets={wallets}
                     connectModal={{ size: "compact" }}
@@ -97,16 +111,19 @@ const Platform = () => {
                         fontWeight: "500",
                       }
                     }}
-                    />
+                  />
+                </div>
               </div>
-            </div>
-          </header>
+            </header>
 
-          {/* Main Content */}
-          <main className="p-6">
-            {renderContent()}
-          </main>
-        </SidebarInset>
+            {/* Main Content Area */}
+            <main className="flex-1 overflow-auto p-6">
+              <div className="max-w-7xl mx-auto">
+                {renderContent()}
+              </div>
+            </main>
+          </div>
+        </div>
       </div>
     </SidebarProvider>
   );

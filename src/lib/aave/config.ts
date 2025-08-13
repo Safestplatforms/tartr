@@ -8,18 +8,17 @@ export const AAVE_CONFIG = {
   WETH_GATEWAY: "0x893411580e590D62dDBca8a703d61Cc4A8c7b2b9",
 } as const;
 
-// Supported assets for MVP
 export const SUPPORTED_ASSETS = {
-  // Collateral assets
+  // Volatile collateral assets
   ETH: {
     symbol: "ETH",
     name: "Ethereum",
-    address: "0x0000000000000000000000000000000000000000", // ETH placeholder
+    address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH address
     aTokenAddress: "0x4d5F47FA6A74757f35C14fD3a6Ef8E3C9BC514E8", // aWETH
     decimals: 18,
     icon: "Ξ",
     isCollateral: true,
-    canBorrow: false,
+    canBorrow: true,     // Enable ETH borrowing too
   },
   WBTC: {
     symbol: "WBTC",
@@ -29,9 +28,9 @@ export const SUPPORTED_ASSETS = {
     decimals: 8,
     icon: "₿",
     isCollateral: true,
-    canBorrow: false,
+    canBorrow: true,     // Enable WBTC borrowing too
   },
-  // Borrow assets
+  // Stablecoin assets - can be BOTH collateral AND borrowable
   USDC: {
     symbol: "USDC",
     name: "USD Coin",
@@ -39,8 +38,8 @@ export const SUPPORTED_ASSETS = {
     aTokenAddress: "0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c", // aUSDC
     decimals: 6,
     icon: "$",
-    isCollateral: false,
-    canBorrow: true,
+    isCollateral: true,  
+    canBorrow: true,     
   },
   USDT: {
     symbol: "USDT",
@@ -49,8 +48,8 @@ export const SUPPORTED_ASSETS = {
     aTokenAddress: "0x23878914EFE38d27C4D67Ab83ed1b93A74D4086a", // aUSDT
     decimals: 6,
     icon: "$",
-    isCollateral: false,
-    canBorrow: true,
+    isCollateral: true,    
+    canBorrow: true,     
   },
 } as const;
 

@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { TrendingUp, AlertTriangle, Plus, Minus, Loader2 } from "lucide-react";
+import { TrendingUp, AlertTriangle, Plus, Minus, Loader2, Wallet } from "lucide-react";
 import { useAaveData } from "@/hooks/useAaveData";
 import { useAaveTransactions } from "@/hooks/useAaveTransactions";
 import { SUPPORTED_ASSETS } from "@/lib/aave/config";
@@ -145,8 +145,7 @@ const PortfolioTab = () => {
               const borrowValue = data.borrowBalance * data.price;
               const totalAssetValue = walletValue + supplyValue;
               
-              // Only show assets with meaningful balances
-              if (totalAssetValue < 1 && borrowValue < 1) return null;
+              if (!asset?.isCollateral && totalAssetValue < 0.1 && borrowValue < 0.1) return null;
 
               const isActionLoading = selectedAction?.asset === symbol;
 
@@ -160,10 +159,15 @@ const PortfolioTab = () => {
                       <div>
                         <h3 className="text-lg font-semibold">{symbol}</h3>
                         <p className="text-sm text-muted-foreground">{asset?.name}</p>
+                        {asset?.isCollateral && (
+                          <Badge variant="outline" className="text-xs">Can be used as collateral</Badge>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold">${totalAssetValue.toLocaleString()}</p>
+                      <p className="text-lg font-bold">
+                        {totalAssetValue > 0 ? `$${totalAssetValue.toLocaleString()}` : '$0'}
+                      </p>
                       <p className="text-sm text-muted-foreground">Total Value</p>
                     </div>
                   </div>
@@ -171,32 +175,41 @@ const PortfolioTab = () => {
                   <div className="grid md:grid-cols-3 gap-4 mb-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Wallet</p>
-                      <p className="font-medium">{data.balance.toFixed(4)} {symbol}</p>
-                      <p className="text-xs text-muted-foreground">${walletValue.toFixed(0)}</p>
+                      <p className="font-medium">{data.balance.toFixed(6)} {symbol}</p>
+                      <p className="text-xs text-muted-foreground">${walletValue.toFixed(2)}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Supplied</p>
-                      <p className="font-medium text-blue-600">{data.supplyBalance.toFixed(4)} {symbol}</p>
-                      <p className="text-xs text-muted-foreground">${supplyValue.toFixed(0)}</p>
+                      <p className="font-medium text-blue-600">{data.supplyBalance.toFixed(6)} {symbol}</p>
+                      <p className="text-xs text-muted-foreground">${supplyValue.toFixed(2)}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Borrowed</p>
                       <p className="font-medium text-orange-600">
-                        {data.borrowBalance > 0 ? `${data.borrowBalance.toFixed(2)} ${symbol}` : 'None'}
+                        {data.borrowBalance > 0 ? `${data.borrowBalance.toFixed(4)} ${symbol}` : 'None'}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {borrowValue > 0 ? `$${borrowValue.toFixed(0)}` : '$0'}
+                        {borrowValue > 0 ? `$${borrowValue.toFixed(2)}` : '$0'}
                       </p>
                     </div>
                   </div>
 
-                  {/* Quick Actions */}
+                  {/* Quick Actions - NO MINIMUMS */}
                   <div className="flex gap-2">
-                    {data.balance > 0.001 && asset?.isCollateral && (
+                    {/* Supply button - works for any amount > 0, including very small amounts */}
+                    {asset?.isCollateral && (
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => handleQuickSupply(symbol, Math.min(data.balance * 0.5, 1))}
+                        onClick={() => {
+                          if (data.balance > 0) {
+                            // Supply 50% of balance or the full amount if small
+                            const supplyAmount = data.balance < 0.1 ? data.balance : Math.min(data.balance * 0.5, 1);
+                            handleQuickSupply(symbol, supplyAmount);
+                          } else {
+                            toast.error(`You need ${symbol} in your wallet to supply as collateral. Add ${symbol} to your wallet first.`);
+                          }
+                        }}
                         disabled={isActionLoading && selectedAction?.type === 'supply'}
                       >
                         {isActionLoading && selectedAction?.type === 'supply' ? (
@@ -204,15 +217,20 @@ const PortfolioTab = () => {
                         ) : (
                           <Plus className="w-3 h-3 mr-1" />
                         )}
-                        Supply
+                        {data.balance > 0 ? `Supply ${symbol}` : 'Need to Add to Wallet'}
                       </Button>
                     )}
                     
-                    {data.supplyBalance > 0.001 && (
+                    {/* Withdraw button - any amount > 0 */}
+                    {data.supplyBalance > 0 && (
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => handleQuickWithdraw(symbol, Math.min(data.supplyBalance * 0.1, 0.1))}
+                        onClick={() => {
+                          // Withdraw 10% or the full amount if very small
+                          const withdrawAmount = data.supplyBalance < 0.1 ? data.supplyBalance : Math.min(data.supplyBalance * 0.1, 0.1);
+                          handleQuickWithdraw(symbol, withdrawAmount);
+                        }}
                         disabled={isActionLoading && selectedAction?.type === 'withdraw'}
                       >
                         {isActionLoading && selectedAction?.type === 'withdraw' ? (
@@ -224,7 +242,7 @@ const PortfolioTab = () => {
                       </Button>
                     )}
 
-                    {data.borrowBalance > 0.001 && (
+                    {data.borrowBalance > 0 && (
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -235,13 +253,40 @@ const PortfolioTab = () => {
                       </Button>
                     )}
 
-                    {data.supplyBalance > 0 && asset?.canBorrow && maxBorrowable > 100 && (
+                    {data.supplyBalance > 0 && asset?.canBorrow && maxBorrowable > 1 && (
                       <Button variant="outline" size="sm">
                         <Plus className="w-3 h-3 mr-1" />
                         Borrow
                       </Button>
                     )}
                   </div>
+
+                  {/* Enhanced help text for collateral assets */}
+                  {asset?.isCollateral && data.balance === 0 && data.supplyBalance === 0 && (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start space-x-2">
+                        <Wallet className="w-4 h-4 text-blue-600 mt-0.5" />
+                        <div className="text-sm text-blue-800">
+                          <p className="font-medium">No {symbol} detected</p>
+                          <p className="text-xs text-blue-600 mt-1">
+                            Add any amount of {symbol} to your wallet to use as collateral.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Special message for very small amounts */}
+                  {asset?.isCollateral && data.balance > 0 && data.balance < 0.001 && (
+                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="text-sm text-yellow-800">
+                        <p className="font-medium">Small Amount Detected: {data.balance.toFixed(6)} {symbol}</p>
+                        <p className="text-xs text-yellow-600 mt-1">
+                          You can deposit this amount, but gas fees might exceed the value. Consider the cost before proceeding.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -262,6 +307,24 @@ const PortfolioTab = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Overall Health Factor</span>
+              <span className={`font-medium ${getHealthFactorColor(healthFactor)}`}>
+                {healthFactor > 0 ? healthFactor.toFixed(2) : '∞'}
+              </span>
+            </div>
+            
+            <Separator />
+            
+            <div className="text-sm text-muted-foreground">
+              <p className="mb-2">Your health factor indicates the safety of your Aave positions:</p>
+              <ul className="space-y-1 list-disc list-inside">
+                <li>Above 1.5: Healthy position ✅</li>
+                <li>1.2-1.5: Monitor closely ⚠️</li>
+                <li>Below 1.2: Risk of liquidation ❌</li>
+              </ul>
+            </div>
+
             {maxBorrowable > 0 && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                 <p className="text-sm text-green-800">
@@ -272,7 +335,8 @@ const PortfolioTab = () => {
                 </p>
               </div>
             )}
-              {healthFactor > 0 && healthFactor < 1.5 && (
+
+            {healthFactor > 0 && healthFactor < 1.5 && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <p className="text-sm text-yellow-800">
                   <strong>Health Factor Warning:</strong> Your health factor is below 1.5
@@ -285,24 +349,6 @@ const PortfolioTab = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* No positions message */}
-      {Object.values(aaveBalances).every(data => data.balance + data.supplyBalance + data.borrowBalance < 0.001) && (
-        <Card className="border-dashed border-2">
-          <CardContent className="text-center py-8">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-              <TrendingUp className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">No Portfolio Assets</h3>
-            <p className="text-muted-foreground mb-4">
-              Add cryptocurrency to your wallet to start using Aave for lending and borrowing.
-            </p>
-            <Button variant="outline">
-              Learn How to Add Crypto
-            </Button>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

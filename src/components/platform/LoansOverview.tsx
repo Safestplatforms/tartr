@@ -1,13 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// LoansOverview.tsx - Fixed version
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, TrendingUp, AlertTriangle, Loader2, Plus } from "lucide-react";
-import { Link } from "react-router-dom";
+import { TrendingUp, Plus, Eye, Loader2 } from "lucide-react";
 import { useAaveData } from "@/hooks/useAaveData";
-import { useAaveTransactions } from "@/hooks/useAaveTransactions";
 import { SUPPORTED_ASSETS } from "@/lib/aave/config";
 
-const LoansOverview = () => {
+interface LoansOverviewProps {
+  onTabChange?: (tab: string) => void; // Add this prop
+}
+
+const LoansOverview = ({ onTabChange }: LoansOverviewProps) => {
   const { 
     aaveBalances, 
     totalSupplied, 
@@ -16,52 +19,32 @@ const LoansOverview = () => {
     isLoading 
   } = useAaveData();
 
-  const { repayState, withdrawState } = useAaveTransactions();
-
-  // Helper function to get health factor color
-  const getHealthFactorColor = (healthFactor: number) => {
-    if (healthFactor >= 1.5) return 'text-green-600';
-    if (healthFactor >= 1.2) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  // Helper function to get health factor badge
-  const getHealthFactorBadge = (healthFactor: number) => {
-    const status = healthFactor >= 1.5 ? 'Healthy' : healthFactor >= 1.2 ? 'Warning' : 'At Risk';
-    const colorClass = getHealthFactorColor(healthFactor);
-    
-    return (
-      <Badge className={`${colorClass} bg-opacity-10`}>
-        {status}
-      </Badge>
-    );
-  };
-
-  // Generate active positions from real Aave data
+  // Create positions from real Aave data
   const activePositions = Object.entries(aaveBalances)
     .filter(([symbol, data]) => data.supplyBalance > 0 || data.borrowBalance > 0)
-    .map(([symbol, data], index) => {
+    .map(([symbol, data]) => {
       const asset = SUPPORTED_ASSETS[symbol as keyof typeof SUPPORTED_ASSETS];
-      // Convert borrowAmount to number for proper comparison
-      const borrowAmountNum = Number(data.borrowBalance.toFixed(2));
+      const borrowAmountNum = data.borrowBalance * data.price;
       
       return {
-        id: `aave-${symbol.toLowerCase()}-${index}`,
+        id: symbol,
         collateralAsset: symbol,
         collateralAmount: data.supplyBalance.toFixed(4),
         collateralValue: data.supplyBalance * data.price,
-        borrowAsset: "USDC", // For display purposes
-        borrowAmount: borrowAmountNum, // This is now a number
-        borrowAmountDisplay: data.borrowBalance.toFixed(2), // For display
-        borrowValue: data.borrowBalance * data.price,
-        healthFactor: healthFactor,
-        apy: symbol === 'ETH' ? "3.2%" : symbol === 'WBTC' ? "2.8%" : "8.5%",
-        status: "active",
-        supplyRate: "2.5%",
+        borrowAmount: borrowAmountNum,
+        borrowAmountDisplay: borrowAmountNum.toLocaleString(),
+        supplyRate: symbol === 'ETH' ? "2.1%" : symbol === 'WBTC' ? "1.8%" : "3.2%",
         borrowRate: borrowAmountNum > 0 ? "5.2%" : "0%",
+        status: "active",
         asset: asset
       };
     });
+
+  const getHealthFactorBadge = (healthFactor: number) => {
+    if (healthFactor >= 1.5) return <Badge variant="secondary" className="text-green-600 bg-green-50">Healthy</Badge>;
+    if (healthFactor >= 1.2) return <Badge variant="secondary" className="text-yellow-600 bg-yellow-50">Warning</Badge>;
+    return <Badge variant="destructive">At Risk</Badge>;
+  };
 
   if (isLoading) {
     return (
@@ -80,18 +63,20 @@ const LoansOverview = () => {
           Start by supplying collateral or borrowing assets.
         </p>
         <div className="flex gap-4 justify-center">
-          <Link to="/platform?tab=portfolio">
-            <Button variant="outline">
-              <Plus className="w-4 h-4 mr-2" />
-              Supply Assets
-            </Button>
-          </Link>
-          <Link to="/platform?tab=borrow">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Borrow Assets
-            </Button>
-          </Link>
+          {/* Fixed: Use onTabChange instead of Link navigation */}
+          <Button 
+            variant="outline"
+            onClick={() => onTabChange?.('portfolio')}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Supply Assets
+          </Button>
+          <Button
+            onClick={() => onTabChange?.('borrow')}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Borrow Assets
+          </Button>
         </div>
       </div>
     );
@@ -104,12 +89,10 @@ const LoansOverview = () => {
           <h2 className="text-2xl font-bold">Your Aave Positions</h2>
           <p className="text-muted-foreground">Monitor and manage your DeFi positions on Aave Protocol</p>
         </div>
-        <Link to="/platform?tab=borrow">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            New Position
-          </Button>
-        </Link>
+        <Button onClick={() => onTabChange?.('borrow')}>
+          <Plus className="w-4 h-4 mr-2" />
+          New Position
+        </Button>
       </div>
 
       <div className="grid gap-4">
@@ -187,52 +170,6 @@ const LoansOverview = () => {
             </CardContent>
           </Card>
         ))}
-      </div>
-
-      {/* Summary Stats */}
-      <div className="grid md:grid-cols-3 gap-4 mt-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Supplied</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-green-600">
-              ${totalSupplied.toLocaleString()}
-            </p>
-            <p className="text-sm text-muted-foreground">Earning yield on Aave</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Borrowed</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-orange-600">
-              ${totalBorrowed.toLocaleString()}
-            </p>
-            <p className="text-sm text-muted-foreground">Outstanding debt</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Health Factor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className={`text-2xl font-bold ${getHealthFactorColor(healthFactor)}`}>
-              {healthFactor > 0 ? healthFactor.toFixed(2) : '∞'}
-            </p>
-            <div className="flex items-center space-x-1 text-sm">
-              <AlertTriangle className={`w-3 h-3 ${
-                healthFactor >= 1.5 ? 'text-green-600' : healthFactor >= 1.2 ? 'text-yellow-600' : 'text-red-600'
-              }`} />
-              <span className={healthFactor >= 1.5 ? 'text-green-600' : healthFactor >= 1.2 ? 'text-yellow-600' : 'text-red-600'}>
-                {healthFactor >= 1.5 ? 'Healthy' : healthFactor >= 1.2 ? 'Warning' : 'At Risk'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
