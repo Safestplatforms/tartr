@@ -90,7 +90,7 @@ const CollateralStep = ({ applicationData, onUpdate, onNext }: CollateralStepPro
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">Select Your Collateral</h2>
         <p className="text-muted-foreground">
-          Choose the cryptocurrency you'd like to supply to Aave as collateral for your ${applicationData.loanAmount.toLocaleString()} loan
+          Choose the cryptocurrency you'd like to supply to Tartr as collateral for your ${applicationData.loanAmount.toLocaleString()} loan
         </p>
       </div>
 
@@ -116,10 +116,10 @@ const CollateralStep = ({ applicationData, onUpdate, onNext }: CollateralStepPro
           {totalSupplied > 0 && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="text-sm text-blue-800">
-                <strong>Current Aave Supplies:</strong> ${totalSupplied.toLocaleString()}
+                <strong>Current Tartr Supplies:</strong> ${totalSupplied.toLocaleString()}
               </div>
               <div className="text-xs text-blue-600 mt-1">
-                You already have collateral supplied to Aave that can be used for borrowing
+                You already have collateral supplied to Tartr that can be used for borrowing
               </div>
             </div>
           )}
@@ -223,7 +223,7 @@ const CollateralStep = ({ applicationData, onUpdate, onNext }: CollateralStepPro
               Supplying Collateral...
             </>
           ) : (
-            `Supply Collateral to Aave`
+            `Supply Collateral to Tartr`
           )}
         </Button>
       </div>

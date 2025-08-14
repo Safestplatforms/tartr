@@ -47,7 +47,7 @@ const PortfolioTab = () => {
     setSelectedAction({ type: 'supply', asset });
     try {
       await supply(asset, amount);
-      toast.success(`Supplied ${amount} ${asset} to Aave`);
+      toast.success(`Supplied ${amount} ${asset} to Tartr`);
     } catch (error) {
       toast.error('Supply failed');
     } finally {
@@ -59,7 +59,7 @@ const PortfolioTab = () => {
     setSelectedAction({ type: 'withdraw', asset });
     try {
       await withdraw(asset, amount);
-      toast.success(`Withdrew ${amount} ${asset} from Aave`);
+      toast.success(`Withdrew ${amount} ${asset} from Tartr`);
     } catch (error) {
       toast.error('Withdrawal failed');
     } finally {
@@ -72,7 +72,7 @@ const PortfolioTab = () => {
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading your Aave portfolio...</p>
+          <p className="text-muted-foreground">Loading your Tartr portfolio...</p>
         </div>
       </div>
     );
@@ -90,14 +90,14 @@ const PortfolioTab = () => {
             <p className="text-2xl font-bold">${totalValue.toLocaleString()}</p>
             <div className="flex items-center space-x-1 text-sm text-green-600">
               <TrendingUp className="w-3 h-3" />
-              <span>Wallet + Aave</span>
+              <span>Tartr</span>
             </div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Supplied to Aave</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Supplied to Tartr</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-blue-600">${totalSupplied.toLocaleString()}</p>
@@ -133,7 +133,7 @@ const PortfolioTab = () => {
         <CardHeader>
           <CardTitle>Asset Positions</CardTitle>
           <CardDescription>
-            Manage your crypto assets and Aave positions
+            Manage your crypto assets and Tartr positions
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -302,7 +302,7 @@ const PortfolioTab = () => {
             <span>Risk Management</span>
           </CardTitle>
           <CardDescription>
-            Monitor and manage your portfolio risk on Aave
+            Monitor and manage your portfolio risk on Tartr
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -317,7 +317,7 @@ const PortfolioTab = () => {
             <Separator />
             
             <div className="text-sm text-muted-foreground">
-              <p className="mb-2">Your health factor indicates the safety of your Aave positions:</p>
+              <p className="mb-2">Your health factor indicates the safety of your Tartr positions:</p>
               <ul className="space-y-1 list-disc list-inside">
                 <li>Above 1.5: Healthy position ✅</li>
                 <li>1.2-1.5: Monitor closely ⚠️</li>

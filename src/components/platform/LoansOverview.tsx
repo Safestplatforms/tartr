@@ -86,8 +86,8 @@ const LoansOverview = ({ onTabChange }: LoansOverviewProps) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Your Aave Positions</h2>
-          <p className="text-muted-foreground">Monitor and manage your DeFi positions on Aave Protocol</p>
+          <h2 className="text-2xl font-bold">Your Tartr Positions</h2>
+          <p className="text-muted-foreground">Monitor and manage your DeFi positions on Tartr</p>
         </div>
         <Button onClick={() => onTabChange?.('borrow')}>
           <Plus className="w-4 h-4 mr-2" />
@@ -109,7 +109,7 @@ const LoansOverview = ({ onTabChange }: LoansOverviewProps) => {
                       {position.collateralAsset} Position
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Aave Protocol • {position.status === 'active' ? 'Active' : 'Inactive'}
+                      Tartr • {position.status === 'active' ? 'Active' : 'Inactive'}
                     </div>
                   </div>
                   {healthFactor > 0 && getHealthFactorBadge(healthFactor)}

@@ -150,7 +150,7 @@ const LoanPlans = () => {
 
       <div className="text-center pt-8">
         <p className="text-muted-foreground text-sm">
-          All plans include: Multi-asset collateral support • Real-time liquidation protection • Insurance coverage up to $250k
+          All plans include: Multi-asset collateral support • Real-time liquidation protection
         </p>
       </div>
     </div>

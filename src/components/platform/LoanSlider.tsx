@@ -105,7 +105,7 @@ const LoanSlider = () => {
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading Aave data...</p>
+          <p className="text-muted-foreground">Loading Tartr data...</p>
         </div>
       </div>
     );
@@ -118,7 +118,7 @@ const LoanSlider = () => {
         <div className="text-center">
           <h2 className="text-3xl font-bold mb-4">Start Your DeFi Journey</h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            To borrow from Aave, you first need to supply collateral. Add crypto to your wallet and supply it to Aave to start borrowing.
+            To borrow from Tartr, you first need to supply collateral. Add crypto to your wallet and supply it to Tartr to start borrowing.
           </p>
         </div>
 
@@ -143,7 +143,7 @@ const LoanSlider = () => {
                 <ol className="text-sm text-blue-700 text-left space-y-1">
                   <li>1. Add ETH or WBTC to your wallet</li>
                   <li>2. Go to the Portfolio tab</li>
-                  <li>3. Supply your crypto as collateral to Aave</li>
+                  <li>3. Supply your crypto as collateral to Tartr</li>
                   <li>4. Return here to borrow against your collateral</li>
                 </ol>
               </div>
@@ -157,7 +157,7 @@ const LoanSlider = () => {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="text-3xl font-bold mb-4">Borrow from Aave</h2>
+        <h2 className="text-3xl font-bold mb-4">Borrow from Tartr</h2>
         <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto text-sm">
           <div>
             <p className="text-muted-foreground">Supplied</p>
@@ -216,7 +216,7 @@ const LoanSlider = () => {
               <div className="text-muted-foreground">{selectedBorrowAsset} Loan Amount</div>
               <div className="flex items-center justify-center space-x-1 text-sm text-muted-foreground">
                 <Info className="w-4 h-4" />
-                <span>Powered by Aave Protocol</span>
+                <span>Powered by Tartr</span>
               </div>
             </div>
           </CardHeader>
@@ -284,7 +284,7 @@ const LoanSlider = () => {
           <CardContent className="p-6 text-center">
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
-                You're about to borrow <strong>{loanAmount[0].toLocaleString()} {selectedBorrowAsset}</strong> from Aave
+                You're about to borrow <strong>{loanAmount[0].toLocaleString()} {selectedBorrowAsset}</strong> from Tartr
               </div>
               
               <Button 
@@ -296,7 +296,7 @@ const LoanSlider = () => {
                 {isBorrowing || borrowState.isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Borrowing from Aave...
+                    Borrowing from Tartr...
                   </>
                 ) : !hasCollateral ? (
                   "Supply Collateral First"
@@ -319,7 +319,7 @@ const LoanSlider = () => {
 
       <div className="text-center pt-4">
         <p className="text-muted-foreground text-sm">
-          Powered by Aave Protocol • Decentralized • Non-custodial • Transparent
+          Powered by Tartr • Decentralized • Non-custodial • Transparent
         </p>
       </div>
     </div>

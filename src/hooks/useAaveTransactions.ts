@@ -140,7 +140,7 @@ export const useAaveTransactions = () => {
               error: null,
               txHash: result.transactionHash,
             });
-            toast.success(`Successfully supplied ${amount} ETH to Aave`);
+            toast.success(`Successfully supplied ${amount} ETH to Tartr`);
           },
           onError: (error) => {
             console.error('ETH deposit failed:', error);
@@ -194,7 +194,7 @@ export const useAaveTransactions = () => {
             error: null,
             txHash: result.transactionHash,
           });
-          toast.success(`Successfully supplied ${amount} ${assetSymbol} to Aave`);
+          toast.success(`Successfully supplied ${amount} ${assetSymbol} to Tartr`);
         },
         onError: (error) => {
           console.error('Supply transaction failed:', error);
@@ -318,7 +318,7 @@ export const useAaveTransactions = () => {
               error: null,
               txHash: result.transactionHash,
             });
-            toast.success(`Successfully withdrew ${amount} ETH from Aave`);
+            toast.success(`Successfully withdrew ${amount} ETH from Tartr`);
           },
           onError: (error) => {
             console.error('ETH withdrawal failed:', error);

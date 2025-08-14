@@ -97,7 +97,7 @@ const BorrowTab = () => {
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading Aave data...</p>
+          <p className="text-muted-foreground">Loading Tartr data...</p>
         </div>
       </div>
     );
@@ -111,7 +111,7 @@ const BorrowTab = () => {
           <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-4">No Collateral Supplied</h3>
           <p className="text-muted-foreground mb-6">
-            To borrow assets from Aave, you first need to supply collateral. 
+            To borrow assets from Tartr, you first need to supply collateral. 
             Go to the Portfolio tab to supply your crypto assets.
           </p>
           <Button variant="outline">
@@ -127,7 +127,7 @@ const BorrowTab = () => {
       {/* Borrow Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Borrow from Aave</CardTitle>
+          <CardTitle>Borrow from Tartr</CardTitle>
           <CardDescription>
             Borrow stablecoins against your supplied collateral
           </CardDescription>
@@ -135,7 +135,7 @@ const BorrowTab = () => {
         <CardContent className="space-y-6">
           {/* Current Position Summary */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-medium text-blue-900 mb-2">Your Aave Position</h4>
+            <h4 className="font-medium text-blue-900 mb-2">Your Tartr Position</h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-blue-600">Total Supplied</p>
