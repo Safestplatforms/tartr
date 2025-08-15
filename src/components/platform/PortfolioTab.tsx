@@ -2,7 +2,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { TrendingUp, AlertTriangle, Plus, Minus, Loader2, Wallet } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { TrendingUp, AlertTriangle, Plus, Minus, Loader2, Wallet, Edit3, X, DollarSign } from "lucide-react";
 import { useAaveData } from "@/hooks/useAaveData";
 import { useAaveTransactions } from "@/hooks/useAaveTransactions";
 import { SUPPORTED_ASSETS } from "@/lib/aave/config";
@@ -30,6 +32,15 @@ const PortfolioTab = () => {
   } = useAaveTransactions();
 
   const [selectedAction, setSelectedAction] = useState<{type: string, asset: string} | null>(null);
+  
+  // NEW: Custom amount input state
+  const [customAmountInput, setCustomAmountInput] = useState<{
+    type: 'supply' | 'withdraw' | 'repay';
+    asset: string;
+    maxAmount: number;
+    currentPrice: number;
+  } | null>(null);
+  const [customAmount, setCustomAmount] = useState("");
 
   const getHealthFactorColor = (healthFactor: number) => {
     if (healthFactor >= 1.5) return "text-green-600";
@@ -43,6 +54,7 @@ const PortfolioTab = () => {
     return <Badge variant="destructive">At Risk</Badge>;
   };
 
+  // EXISTING QUICK ACTIONS (keep these working as they are)
   const handleQuickSupply = async (asset: string, amount: number) => {
     setSelectedAction({ type: 'supply', asset });
     try {
@@ -67,6 +79,91 @@ const PortfolioTab = () => {
     }
   };
 
+  // NEW: Custom amount handlers
+  const openCustomAmountInput = (type: 'supply' | 'withdraw' | 'repay', asset: string, maxAmount: number, currentPrice: number) => {
+    setCustomAmountInput({ type, asset, maxAmount, currentPrice });
+    setCustomAmount("");
+  };
+
+  const closeCustomAmountInput = () => {
+    setCustomAmountInput(null);
+    setCustomAmount("");
+  };
+
+  const handleCustomAmountChange = (value: string) => {
+    const regex = /^\d*\.?\d*$/;
+    if (regex.test(value) || value === '') {
+      setCustomAmount(value);
+    }
+  };
+
+  const validateCustomAmount = () => {
+    const numAmount = parseFloat(customAmount);
+    
+    if (!customAmount || numAmount <= 0) {
+      return { error: "Please enter a valid amount", isValid: false };
+    }
+    
+    if (numAmount > customAmountInput!.maxAmount) {
+      return { 
+        error: `Maximum available: ${customAmountInput!.maxAmount.toFixed(6)} ${customAmountInput!.asset}`, 
+        isValid: false 
+      };
+    }
+
+    // Gas fee warning for small ETH amounts
+    if (customAmountInput!.asset === 'ETH' && customAmountInput!.type === 'supply') {
+      const usdValue = numAmount * customAmountInput!.currentPrice;
+      if (usdValue < 5) {
+        return { 
+          error: `Note: Gas fees (~$2-5) may be significant for this $${usdValue.toFixed(2)} deposit.`, 
+          isValid: true,
+          isWarning: true
+        };
+      }
+    }
+    
+    return { error: null, isValid: true };
+  };
+
+  const executeCustomAmount = async () => {
+    if (!customAmountInput) return;
+    
+    const validation = validateCustomAmount();
+    if (!validation.isValid) {
+      toast.error(validation.error);
+      return;
+    }
+    const amount = parseFloat(customAmount);
+    const { type, asset } = customAmountInput;
+
+    setSelectedAction({ type, asset });
+    
+    try {
+      if (type === 'supply') {
+        await supply(asset, amount);
+        toast.success(`Successfully supplied ${amount} ${asset} to Tartr`);
+      } else if (type === 'withdraw') {
+        await withdraw(asset, amount);
+        toast.success(`Successfully withdrew ${amount} ${asset} from Tartr`);
+      } else if (type === 'repay') {
+        await repay(asset, amount);
+        toast.success(`Successfully repaid ${amount} ${asset}`);
+      }
+      closeCustomAmountInput();
+    } catch (error) {
+      toast.error(`${type} failed`);
+    } finally {
+      setSelectedAction(null);
+    }
+  };
+
+  const setQuickCustomAmount = (percentage: number) => {
+    if (!customAmountInput) return;
+    const targetAmount = (customAmountInput.maxAmount * percentage) / 100;
+    setCustomAmount(targetAmount.toFixed(6));
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -80,6 +177,120 @@ const PortfolioTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Custom Amount Input Modal */}
+      {customAmountInput && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md bg-white">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+              <CardTitle className="text-xl">
+                {customAmountInput.type === 'supply' ? 'Deposit' : 
+                 customAmountInput.type === 'withdraw' ? 'Withdraw' : 'Repay'} {customAmountInput.asset}
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={closeCustomAmountInput}>
+                <X className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            
+            <CardContent className="space-y-4">
+              {/* Balance Display */}
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">
+                  {customAmountInput.type === 'supply' ? 'Wallet Balance' : 
+                   customAmountInput.type === 'withdraw' ? 'Supplied Balance' : 'Borrowed Amount'}
+                </span>
+                <span className="font-medium">{customAmountInput.maxAmount.toFixed(6)} {customAmountInput.asset}</span>
+              </div>
+
+              {/* Amount Input */}
+              <div className="space-y-2">
+                <Label htmlFor="customAmount">Amount</Label>
+                <div className="relative">
+                  <Input
+                    id="customAmount"
+                    type="text"
+                    placeholder="0.000000"
+                    value={customAmount}
+                    onChange={(e) => handleCustomAmountChange(e.target.value)}
+                    className="text-right pr-16"
+                  />
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">
+                    {customAmountInput.asset}
+                  </span>
+                </div>
+              </div>
+
+              {/* Quick Amount Buttons */}
+              <div className="grid grid-cols-4 gap-2">
+                {[25, 50, 75, 100].map((percentage) => (
+                  <Button
+                    key={percentage}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setQuickCustomAmount(percentage)}
+                    className="text-xs"
+                  >
+                    {percentage}%
+                  </Button>
+                ))}
+              </div>
+
+              {/* USD Value */}
+              {customAmount && !isNaN(parseFloat(customAmount)) && (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <DollarSign className="h-4 w-4" />
+                  <span>≈ ${(parseFloat(customAmount) * customAmountInput.currentPrice).toFixed(2)} USD</span>
+                </div>
+              )}
+
+              {/* Validation Messages */}
+              {customAmount && (() => {
+                const validation = validateCustomAmount();
+                if (validation.error) {
+                  return (
+                    <div className={`flex items-start space-x-2 p-3 rounded-lg ${
+                      !validation.isValid ? "bg-red-50 text-red-700" :
+                      validation.isWarning ? "bg-yellow-50 text-yellow-700" :
+                      "bg-blue-50 text-blue-700"
+                    }`}>
+                      <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm">{validation.error}</p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Action Buttons */}
+              <div className="flex space-x-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={closeCustomAmountInput}
+                  className="flex-1"
+                  disabled={selectedAction?.asset === customAmountInput.asset}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={executeCustomAmount}
+                  disabled={!validateCustomAmount().isValid || selectedAction?.asset === customAmountInput.asset}
+                  className="flex-1"
+                >
+                  {selectedAction?.asset === customAmountInput.asset ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    `${customAmountInput.type === 'supply' ? 'Deposit' : 
+                      customAmountInput.type === 'withdraw' ? 'Withdraw' : 'Repay'} ${customAmountInput.asset}`
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Portfolio Summary */}
       <div className="grid md:grid-cols-4 gap-4">
         <Card>
@@ -87,10 +298,10 @@ const PortfolioTab = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Portfolio</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">${totalValue.toLocaleString()}</p>
+            <p className="text-2xl font-bold">${totalValue.toFixed(2).toLocaleString()}</p>
             <div className="flex items-center space-x-1 text-sm text-green-600">
               <TrendingUp className="w-3 h-3" />
-              <span>Tartr</span>
+              <span>Wallet + Tartr</span>
             </div>
           </CardContent>
         </Card>
@@ -100,7 +311,7 @@ const PortfolioTab = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Supplied to Tartr</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-blue-600">${totalSupplied.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-blue-600">${totalSupplied.toFixed(2).toLocaleString()}</p>
             <p className="text-sm text-muted-foreground">Earning yield</p>
           </CardContent>
         </Card>
@@ -166,7 +377,7 @@ const PortfolioTab = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold">
-                        {totalAssetValue > 0 ? `$${totalAssetValue.toLocaleString()}` : '$0'}
+                        {totalAssetValue > 0 ? `$${totalAssetValue.toFixed(2).toLocaleString()}` : '$0'}
                       </p>
                       <p className="text-sm text-muted-foreground">Total Value</p>
                     </div>
@@ -194,59 +405,58 @@ const PortfolioTab = () => {
                     </div>
                   </div>
 
-                  {/* Quick Actions - NO MINIMUMS */}
-                  <div className="flex gap-2">
-                    {/* Supply button - works for any amount > 0, including very small amounts */}
-                    {asset?.isCollateral && (
+                  {/* ENHANCED Quick Actions with Custom Amount Options */}
+                  <div className="flex gap-2 flex-wrap">
+                    {/* Supply buttons */}
+                    {asset?.isCollateral && data.balance > 0 && (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openCustomAmountInput('supply', symbol, data.balance, data.price)}
+                          disabled={isActionLoading}
+                        >
+                          <Plus className="w-3 h-3 " />
+                          Supply
+                        </Button>
+                      </>
+                    )}
+
+                    {/* No balance message */}
+                    {asset?.isCollateral && data.balance === 0 && (
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => {
-                          if (data.balance > 0) {
-                            // Supply 50% of balance or the full amount if small
-                            const supplyAmount = data.balance < 0.1 ? data.balance : Math.min(data.balance * 0.5, 1);
-                            handleQuickSupply(symbol, supplyAmount);
-                          } else {
-                            toast.error(`You need ${symbol} in your wallet to supply as collateral. Add ${symbol} to your wallet first.`);
-                          }
-                        }}
-                        disabled={isActionLoading && selectedAction?.type === 'supply'}
+                        disabled
                       >
-                        {isActionLoading && selectedAction?.type === 'supply' ? (
-                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                        ) : (
-                          <Plus className="w-3 h-3 mr-1" />
-                        )}
-                        {data.balance > 0 ? `Supply ${symbol}` : 'Need to Add to Wallet'}
+                        <Plus className="w-3 h-3 mr-1" />
+                        Need to Add to Wallet
                       </Button>
                     )}
                     
-                    {/* Withdraw button - any amount > 0 */}
+                    {/* Withdraw buttons */}
                     {data.supplyBalance > 0 && (
+                      <>
                       <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          // Withdraw 10% or the full amount if very small
-                          const withdrawAmount = data.supplyBalance < 0.1 ? data.supplyBalance : Math.min(data.supplyBalance * 0.1, 0.1);
-                          handleQuickWithdraw(symbol, withdrawAmount);
-                        }}
-                        disabled={isActionLoading && selectedAction?.type === 'withdraw'}
-                      >
-                        {isActionLoading && selectedAction?.type === 'withdraw' ? (
-                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                        ) : (
-                          <Minus className="w-3 h-3 mr-1" />
-                        )}
-                        Withdraw
-                      </Button>
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openCustomAmountInput('withdraw', symbol, data.supplyBalance, data.price)}
+                          disabled={isActionLoading}
+                        >
+                          <Minus className="w-3 h-3 " />
+                          Withdraw
+                        </Button>
+                      </>
                     )}
 
+                    {/* Repay button */}
                     {data.borrowBalance > 0 && (
                       <Button 
                         variant="outline" 
                         size="sm" 
                         className="text-orange-600 border-orange-200"
+                        onClick={() => openCustomAmountInput('repay', symbol, data.borrowBalance, data.price)}
+                        disabled={isActionLoading}
                       >
                         <Minus className="w-3 h-3 mr-1" />
                         Repay
@@ -272,18 +482,6 @@ const PortfolioTab = () => {
                             Add any amount of {symbol} to your wallet to use as collateral.
                           </p>
                         </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Special message for very small amounts */}
-                  {asset?.isCollateral && data.balance > 0 && data.balance < 0.001 && (
-                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <div className="text-sm text-yellow-800">
-                        <p className="font-medium">Small Amount Detected: {data.balance.toFixed(6)} {symbol}</p>
-                        <p className="text-xs text-yellow-600 mt-1">
-                          You can deposit this amount, but gas fees might exceed the value. Consider the cost before proceeding.
-                        </p>
                       </div>
                     </div>
                   )}

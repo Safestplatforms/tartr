@@ -13,7 +13,17 @@ import {
   SidebarTrigger
 } from "@/components/ui/sidebar";
 import { Card, CardContent } from "@/components/ui/card";
-import { CreditCard, Plus, PieChart, ArrowLeft, Wallet, AlertCircle, TrendingUp, Shield } from "lucide-react";
+import { 
+  CreditCard, 
+  Plus, 
+  PieChart, 
+  ArrowLeft, 
+  Wallet, 
+  AlertCircle, 
+  TrendingUp, 
+  Shield,
+  BarChart3
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAaveData } from "@/hooks/useAaveData";
 
@@ -39,7 +49,11 @@ const menuItems = [
     title: "New Loan",
     icon: Plus,
   },
-  
+  {
+    id: "rates",
+    title: "Markets",
+    icon: BarChart3,
+  },
 ];
 
 export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: PlatformSidebarProps) {
@@ -69,7 +83,7 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
   const healthBadge = healthFactor > 0 ? getHealthFactorBadge(healthFactor) : null;
 
   return (
-    <Sidebar className="w-64 md:w-72">
+    <Sidebar variant="sidebar" className="border-r">
       <SidebarHeader className="border-b border-border bg-background p-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground">
@@ -86,7 +100,7 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="overflow-y-auto">
         {/* Aave Position Widget */}
         {isWalletConnected && (
           <div className="p-3 md:p-4">
@@ -95,7 +109,7 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
                     <Wallet className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium">Tartr Position</span>
+                    <span className="text-sm font-medium">Position</span>
                   </div>
                   <Badge variant="outline" className="text-xs text-green-600 border-green-600">
                     Connected
@@ -112,7 +126,7 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
                     {/* Total Portfolio Value */}
                     <div>
                       <div className="text-base md:text-lg font-bold text-primary">
-                        ${totalValue.toLocaleString()}
+                        ${totalValue.toFixed(2).toLocaleString()}
                       </div>
                       <div className="text-xs text-muted-foreground">Total Portfolio Value</div>
                     </div>
@@ -120,7 +134,7 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
                     {/* Available to Borrow */}
                     <div>
                       <div className="text-base md:text-lg font-bold text-green-600">
-                        ${maxBorrowable.toLocaleString()}
+                        ${maxBorrowable.toFixed(2).toLocaleString()}
                       </div>
                       <div className="text-xs text-muted-foreground">Available to Borrow</div>
                     </div>
@@ -130,12 +144,12 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
                       <div className="space-y-1">
                         <div className="flex justify-between text-xs">
                           <span className="text-muted-foreground">Supplied:</span>
-                          <span className="font-medium text-blue-600">${totalSupplied.toFixed(0)}</span>
+                          <span className="font-medium text-blue-600">${totalSupplied.toFixed(2)}</span>
                         </div>
                         {totalBorrowed > 0 && (
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">Borrowed:</span>
-                            <span className="font-medium text-orange-600">${totalBorrowed.toFixed(0)}</span>
+                            <span className="font-medium text-orange-600">${totalBorrowed.toFixed(2)}</span>
                           </div>
                         )}
                       </div>
@@ -174,7 +188,7 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
                             return (
                               <div key={crypto} className="flex justify-between text-xs">
                                 <span className="font-medium">{crypto}:</span>
-                                <span>${totalAssetValue.toFixed(0)}</span>
+                                <span>${totalAssetValue.toFixed(2)}</span>
                               </div>
                             );
                           }
@@ -183,12 +197,6 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
                       </div>
                     )}
 
-                    {maxBorrowable === 0 && !hasActivePositions && (
-                      <div className="flex items-start space-x-1 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-                        <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                        <span>Deposit Crypto for use Tartr</span>
-                      </div>
-                    )}
                   </div>
                 )}
               </CardContent>
@@ -196,7 +204,7 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
           </div>
         )}
 
-        <SidebarGroup>
+         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

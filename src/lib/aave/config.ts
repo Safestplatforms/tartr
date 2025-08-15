@@ -4,6 +4,7 @@ export const AAVE_CONFIG = {
   POOL: "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
   POOL_DATA_PROVIDER: "0x7B4EB56E7CD4b454BA8ff71E4518426369a138a3",
   UI_POOL_DATA_PROVIDER: "0x91c0eA31b49B69Ea18607702c5d9aC360bf3dE7d",
+  POOL_ADDRESSES_PROVIDER: "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
   PRICE_ORACLE: "0x54586bE62E3c3580375aE3723C145253060Ca0C2",
   WETH_GATEWAY: "0x893411580e590D62dDBca8a703d61Cc4A8c7b2b9",
 } as const;
@@ -18,7 +19,7 @@ export const SUPPORTED_ASSETS = {
     decimals: 18,
     icon: "Ξ",
     isCollateral: true,
-    canBorrow: true,     // Enable ETH borrowing too
+    canBorrow: true,
   },
   WBTC: {
     symbol: "WBTC",
@@ -28,9 +29,9 @@ export const SUPPORTED_ASSETS = {
     decimals: 8,
     icon: "₿",
     isCollateral: true,
-    canBorrow: true,     // Enable WBTC borrowing too
+    canBorrow: true,
   },
-  // Stablecoin assets - can be BOTH collateral AND borrowable
+  // Stablecoin assets
   USDC: {
     symbol: "USDC",
     name: "USD Coin",

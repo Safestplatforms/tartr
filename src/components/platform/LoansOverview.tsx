@@ -1,13 +1,16 @@
-// LoansOverview.tsx - Fixed version
+// LoansOverview.tsx - Fixed version with working buttons
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Plus, Eye, Loader2 } from "lucide-react";
 import { useAaveData } from "@/hooks/useAaveData";
+import { useAaveTransactions } from "@/hooks/useAaveTransactions";
 import { SUPPORTED_ASSETS } from "@/lib/aave/config";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface LoansOverviewProps {
-  onTabChange?: (tab: string) => void; // Add this prop
+  onTabChange?: (tab: string) => void;
 }
 
 const LoansOverview = ({ onTabChange }: LoansOverviewProps) => {
@@ -18,6 +21,9 @@ const LoansOverview = ({ onTabChange }: LoansOverviewProps) => {
     healthFactor, 
     isLoading 
   } = useAaveData();
+
+  const { withdraw, supply, borrow, withdrawState, supplyState, borrowState } = useAaveTransactions();
+  const [actionLoading, setActionLoading] = useState<{type: string, asset: string} | null>(null);
 
   // Create positions from real Aave data
   const activePositions = Object.entries(aaveBalances)
@@ -36,7 +42,10 @@ const LoansOverview = ({ onTabChange }: LoansOverviewProps) => {
         supplyRate: symbol === 'ETH' ? "2.1%" : symbol === 'WBTC' ? "1.8%" : "3.2%",
         borrowRate: borrowAmountNum > 0 ? "5.2%" : "0%",
         status: "active",
-        asset: asset
+        asset: asset,
+        supplyBalance: data.supplyBalance,
+        borrowBalance: data.borrowBalance,
+        price: data.price
       };
     });
 
@@ -46,10 +55,52 @@ const LoansOverview = ({ onTabChange }: LoansOverviewProps) => {
     return <Badge variant="destructive">At Risk</Badge>;
   };
 
+  // ✅ BUTTON HANDLERS - Missing in original
+  const handleSupplyMore = (symbol: string) => {
+    console.log(`🚀 Supply More ${symbol} clicked`);
+    // Navigate to portfolio tab with specific asset
+    onTabChange?.('portfolio');
+    toast.info(`Navigate to Portfolio to supply more ${symbol}`);
+  };
+
+  const handleWithdraw = async (symbol: string, amount: number) => {
+    console.log(`🚀 Withdraw ${amount} ${symbol} clicked`);
+    setActionLoading({type: 'withdraw', asset: symbol});
+    
+    try {
+      // Use 25% of supply balance for quick withdraw
+      const withdrawAmount = Math.min(amount * 0.25, amount);
+      await withdraw(symbol, withdrawAmount);
+      toast.success(`Successfully withdrew ${withdrawAmount.toFixed(6)} ${symbol}`);
+    } catch (error) {
+      console.error('Withdraw error:', error);
+      toast.error(`Failed to withdraw ${symbol}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleBorrow = (symbol: string) => {
+    console.log(`🚀 Borrow against ${symbol} clicked`);
+    // Navigate to borrow tab
+    onTabChange?.('borrow');
+    toast.info(`Navigate to Borrow section to borrow against your ${symbol}`);
+  };
+
+  const handleRepay = (symbol: string) => {
+    console.log(`🚀 Repay ${symbol} loan clicked`);
+    // Navigate to portfolio or borrow tab for repay
+    onTabChange?.('portfolio');
+    toast.info(`Navigate to Portfolio to repay your ${symbol} loan`);
+  };
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading Loans Data...</p>
+        </div>
       </div>
     );
   }
@@ -63,7 +114,6 @@ const LoansOverview = ({ onTabChange }: LoansOverviewProps) => {
           Start by supplying collateral or borrowing assets.
         </p>
         <div className="flex gap-4 justify-center">
-          {/* Fixed: Use onTabChange instead of Link navigation */}
           <Button 
             variant="outline"
             onClick={() => onTabChange?.('portfolio')}
@@ -115,7 +165,7 @@ const LoansOverview = ({ onTabChange }: LoansOverviewProps) => {
                   {healthFactor > 0 && getHealthFactorBadge(healthFactor)}
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => onTabChange?.('portfolio')}>
                     <Eye className="w-4 h-4 mr-1" />
                     Manage
                   </Button>
@@ -126,7 +176,7 @@ const LoansOverview = ({ onTabChange }: LoansOverviewProps) => {
                 <div>
                   <p className="text-muted-foreground mb-1">Supplied</p>
                   <p className="font-semibold">{position.collateralAmount} {position.collateralAsset}</p>
-                  <p className="text-xs text-muted-foreground">${position.collateralValue.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">${position.collateralValue.toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground mb-1">Borrowed</p>
@@ -149,20 +199,54 @@ const LoansOverview = ({ onTabChange }: LoansOverviewProps) => {
                 </div>
               </div>
 
-              {/* Quick Actions */}
+              {/* ✅ FIXED: Quick Actions with working click handlers */}
               <div className="flex gap-2 mt-4 pt-4 border-t">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleSupplyMore(position.collateralAsset)}
+                  disabled={actionLoading?.type === 'supply' && actionLoading?.asset === position.collateralAsset}
+                >
+                  {actionLoading?.type === 'supply' && actionLoading?.asset === position.collateralAsset ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4 mr-1" />
+                  )}
                   Supply More
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleWithdraw(position.collateralAsset, position.supplyBalance)}
+                  disabled={actionLoading?.type === 'withdraw' && actionLoading?.asset === position.collateralAsset || position.supplyBalance === 0}
+                >
+                  {actionLoading?.type === 'withdraw' && actionLoading?.asset === position.collateralAsset ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <TrendingUp className="w-4 h-4 mr-1" />
+                  )}
                   Withdraw
                 </Button>
+                
                 {position.borrowAmount > 0 ? (
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleRepay(position.collateralAsset)}
+                  >
                     Repay
                   </Button>
                 ) : (
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleBorrow(position.collateralAsset)}
+                  >
                     Borrow
                   </Button>
                 )}
