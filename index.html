@@ -15,6 +15,29 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <!-- CRITICAL: Define globals before any scripts load to fix "process is not defined" -->
+    <script>
+      // Define process globally for Node.js compatibility
+      if (typeof process === 'undefined') {
+        window.process = { 
+          env: {},
+          version: 'v18.0.0',
+          platform: 'browser',
+          nextTick: function(fn) { setTimeout(fn, 0); }
+        };
+      }
+      
+      // Define global for libraries that expect it
+      if (typeof global === 'undefined') {
+        window.global = window;
+      }
+      
+      // Define Buffer if needed
+      if (typeof Buffer === 'undefined') {
+        window.Buffer = {};
+      }
+    </script>
   </head>
 
   <body>
