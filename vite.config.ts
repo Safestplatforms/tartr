@@ -12,9 +12,26 @@ export default defineConfig({
   },
   define: {
     global: 'globalThis',
-    'process.env': {}
+    'process.env': {},
+    'process.version': '"v18.0.0"',
+    'process.platform': '"browser"',
   },
   optimizeDeps: {
-    include: ['thirdweb']
+    include: ['thirdweb'],
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          thirdweb: ['thirdweb'],
+        }
+      }
+    }
   }
 })
