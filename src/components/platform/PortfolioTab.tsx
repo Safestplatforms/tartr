@@ -321,7 +321,7 @@ const PortfolioTab = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Borrowed</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-orange-600">${totalBorrowed.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-orange-600">${totalBorrowed.toFixed(2).toLocaleString()}</p>
             <p className="text-sm text-muted-foreground">Outstanding debt</p>
           </CardContent>
         </Card>

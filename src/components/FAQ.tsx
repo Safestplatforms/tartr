@@ -29,7 +29,7 @@ const FAQ = () => {
     },
     {
       question: "What crypto assets can I use as collateral?",
-      answer: "We currently support Bitcoin (BTC) and Ethereum (ETH) as collateral. More assets will be added based on community demand and security assessments."
+      answer: "We currently support Ethereum (ETH), Wrapped Bitcoin (WBTC), Chainlink (LINK), and Uniswap (UNI) as collateral. You can borrow USDC and USDT against these assets. More assets will be added based on community demand and security assessments."
     },
     {
       question: "Is my crypto safe?",

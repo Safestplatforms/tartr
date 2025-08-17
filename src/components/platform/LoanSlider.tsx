@@ -23,9 +23,53 @@ const LoanSlider = () => {
   
   const { borrow, borrowState } = useAaveTransactions();
   
-  const [loanAmount, setLoanAmount] = useState([Math.min(1000, maxBorrowable)]);
+  // 🔧 FIXED: Dynamic loan amount based on available amount
+  const getInitialLoanAmount = () => {
+    if (maxBorrowable <= 0) return 0;
+    if (maxBorrowable < 1) return maxBorrowable; // For very small amounts
+    return Math.min(Math.floor(maxBorrowable), maxBorrowable);
+  };
+  
+  const [loanAmount, setLoanAmount] = useState([getInitialLoanAmount()]);
   const [selectedBorrowAsset, setSelectedBorrowAsset] = useState('USDC');
   const [isBorrowing, setIsBorrowing] = useState(false);
+
+  // 🔧 FIXED: Dynamic minimum and step based on available amount
+  const getSliderConfig = () => {
+    if (maxBorrowable <= 0) return { min: 0, step: 0.01, max: 0 };
+    
+    if (maxBorrowable < 1) {
+      // Very small amounts (under $1)
+      return { 
+        min: 0.01, 
+        step: 0.01, 
+        max: Math.max(maxBorrowable, 0.01)
+      };
+    } else if (maxBorrowable < 10) {
+      // Small amounts ($1-$10)
+      return { 
+        min: 0.1, 
+        step: 0.1, 
+        max: Math.max(maxBorrowable, 1)
+      };
+    } else if (maxBorrowable < 100) {
+      // Medium amounts ($10-$100)
+      return { 
+        min: 1, 
+        step: 1, 
+        max: Math.max(maxBorrowable, 10)
+      };
+    } else {
+      // Large amounts ($100+)
+      return { 
+        min: 1, 
+        step: 1, 
+        max: Math.max(maxBorrowable, 1000)
+      };
+    }
+  };
+
+  const sliderConfig = getSliderConfig();
 
   // Define loan tiers based on amount (same as before but now with real data)
   const getLoanTier = (amount: number) => {
@@ -59,10 +103,20 @@ const LoanSlider = () => {
     };
   };
 
+  // 🔧 FIXED: Better amount formatting for small values
   const formatAmount = (amount: number) => {
     if (amount >= 1000000) return `${(amount / 1000000).toFixed(1)}M`;
     if (amount >= 1000) return `${(amount / 1000).toFixed(0)}K`;
-    return amount.toLocaleString();
+    if (amount < 1) return amount.toFixed(2); // Show 2 decimals for amounts under $1
+    if (amount < 10) return amount.toFixed(1); // Show 1 decimal for amounts under $10
+    return Math.floor(amount).toLocaleString();
+  };
+
+  // 🔧 FIXED: Better display formatting
+  const formatDisplayAmount = (amount: number) => {
+    if (amount < 1) return `$${amount.toFixed(2)}`;
+    if (amount < 10) return `$${amount.toFixed(1)}`;
+    return `$${Math.floor(amount).toLocaleString()}`;
   };
 
   const currentTier = getLoanTier(loanAmount[0]);
@@ -70,7 +124,7 @@ const LoanSlider = () => {
   
   // Real borrowing capacity checks
   const hasCollateral = totalSupplied > 0;
-  const canBorrowAmount = loanAmount[0] <= maxBorrowable;
+  const canBorrowAmount = loanAmount[0] <= maxBorrowable && loanAmount[0] > 0;
   const borrowAsset = SUPPORTED_ASSETS[selectedBorrowAsset as keyof typeof SUPPORTED_ASSETS];
 
   const handleBorrow = async () => {
@@ -141,7 +195,7 @@ const LoanSlider = () => {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h4 className="font-medium text-blue-800 mb-2">How to get started:</h4>
                 <ol className="text-sm text-blue-700 text-left space-y-1">
-                  <li>1. Add ETH or WBTC to your wallet</li>
+                  <li>1. Add ETH, WBTC, LINK, or UNI to your wallet</li>
                   <li>2. Go to the Portfolio tab</li>
                   <li>3. Supply your crypto as collateral to Tartr</li>
                   <li>4. Return here to borrow against your collateral</li>
@@ -154,36 +208,44 @@ const LoanSlider = () => {
     );
   }
 
+  const borrowableAssets = Object.keys(SUPPORTED_ASSETS).filter(
+    asset => SUPPORTED_ASSETS[asset as keyof typeof SUPPORTED_ASSETS].canBorrow
+  );
+
   return (
-    <div className="space-y-8">
+    <div className="max-w-4xl mx-auto space-y-8">
       <div className="text-center">
-        <h2 className="text-3xl font-bold mb-4">Borrow from Tartr</h2>
-        <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto text-sm">
-          <div>
-            <p className="text-muted-foreground">Supplied</p>
-            <p className="font-semibold text-blue-600">${totalSupplied.toLocaleString()}</p>
+        <h1 className="text-4xl font-bold mb-4">Borrow from Tartr</h1>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+          <div className="text-center">
+            <div className="text-xl font-bold text-blue-600">${totalSupplied.toFixed(2)}</div>
+            <div className="text-sm text-muted-foreground">Supplied</div>
           </div>
-          <div>
-            <p className="text-muted-foreground">Borrowed</p>
-            <p className="font-semibold text-orange-600">${totalBorrowed.toLocaleString()}</p>
+          <div className="text-center">
+            <div className="text-xl font-bold text-orange-600">${totalBorrowed.toFixed(2)}</div>
+            <div className="text-sm text-muted-foreground">Borrowed</div>
           </div>
-          <div>
-            <p className="text-muted-foreground">Available</p>
-            <p className="font-semibold text-green-600">${maxBorrowable.toLocaleString()}</p>
+          <div className="text-center">
+            <div className="text-xl font-bold text-green-600">${maxBorrowable.toFixed(2)}</div>
+            <div className="text-sm text-muted-foreground">Available</div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto">
-        {/* Borrow Asset Selection */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Select Borrow Asset</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              {['USDC', 'USDT'].map((asset) => (
-                <Card
+      {/* Borrow Asset Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Borrow Asset</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {borrowableAssets.map((asset) => {
+              // 🔧 FIXED: Get real borrowing rate from aaveBalances
+              const assetData = aaveBalances[asset];
+              const borrowRate = assetData?.borrowAPY || 0;
+              
+              return (
+                <Card 
                   key={asset}
                   className={`cursor-pointer transition-all ${
                     selectedBorrowAsset === asset ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
@@ -195,127 +257,124 @@ const LoanSlider = () => {
                     <div className="text-sm text-muted-foreground">
                       {SUPPORTED_ASSETS[asset as keyof typeof SUPPORTED_ASSETS]?.name}
                     </div>
-                    <Badge variant="secondary" className="mt-2">8.5% APY</Badge>
+                    <Badge variant="secondary" className="mt-2">
+                      {borrowRate > 0 ? `${borrowRate.toFixed(2)}%` : '~7.0%'} APY
+                    </Badge>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Loan Amount Slider */}
-        <Card className="mb-8">
-          <CardHeader className="text-center">
-            <div className="space-y-2">
-              <div className="flex items-center justify-center space-x-2">
-                <DollarSign className="w-8 h-8 text-primary" />
-                <div className="text-5xl font-bold text-primary">
-                  {formatAmount(loanAmount[0])}
-                </div>
-              </div>
-              <div className="text-muted-foreground">{selectedBorrowAsset} Loan Amount</div>
-              <div className="flex items-center justify-center space-x-1 text-sm text-muted-foreground">
-                <Info className="w-4 h-4" />
-                <span>Powered by Tartr</span>
+      {/* Loan Amount Slider */}
+      <Card className="mb-8">
+        <CardHeader className="text-center">
+          <div className="space-y-2">
+            <div className="flex items-center justify-center space-x-2">
+              <DollarSign className="w-8 h-8 text-primary" />
+              <div className="text-5xl font-bold text-primary">
+                {formatDisplayAmount(loanAmount[0])}
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="px-4">
-              <Slider
-                value={loanAmount}
-                onValueChange={setLoanAmount}
-                max={Math.max(maxBorrowable, 1000)}
-                min={100}
-                step={100}
-                className="w-full"
-                disabled={maxBorrowable === 0}
-              />
-              <div className="flex justify-between text-sm text-muted-foreground mt-2">
-                <span>$100</span>
-                <span>${maxBorrowable > 0 ? formatAmount(maxBorrowable) : '0'}</span>
-              </div>
+            <div className="text-muted-foreground">{selectedBorrowAsset} Loan Amount</div>
+            <div className="flex items-center justify-center space-x-1 text-sm text-muted-foreground">
+              <Info className="w-4 h-4" />
+              <span>Powered by Tartr</span>
             </div>
-            
-            {/* Quick Amount Buttons */}
-            <div className="flex flex-wrap gap-2 justify-center">
-              {[1000, 5000, 10000, 25000]
-                .filter(amount => amount <= maxBorrowable)
-                .map((amount) => (
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="px-4">
+            <Slider
+              value={loanAmount}
+              onValueChange={setLoanAmount}
+              max={sliderConfig.max}
+              min={sliderConfig.min}
+              step={sliderConfig.step}
+              className="w-full"
+              disabled={maxBorrowable === 0}
+            />
+            <div className="flex justify-between text-sm text-muted-foreground mt-2">
+              <span>{formatDisplayAmount(sliderConfig.min)}</span>
+              <span>{formatDisplayAmount(maxBorrowable)}</span>
+            </div>
+          </div>
+          
+          {/* Quick Amount Buttons - Only show if amounts are achievable */}
+          <div className="flex flex-wrap gap-2 justify-center">
+            {/* Show percentage-based options for small amounts */}
+            {maxBorrowable > 0 && [0.25, 0.5, 0.75, 1].map((percentage) => {
+              const amount = maxBorrowable * percentage;
+              if (amount >= sliderConfig.min) {
+                return (
                   <Button
-                    key={amount}
+                    key={percentage}
                     variant="outline"
                     size="sm"
                     onClick={() => setLoanAmount([amount])}
-                    className={loanAmount[0] === amount ? "bg-primary text-primary-foreground" : ""}
+                    className={Math.abs(loanAmount[0] - amount) < 0.01 ? "bg-primary text-primary-foreground" : ""}
                   >
-                    {formatAmount(amount)}
+                    {percentage === 1 ? 'Max' : `${(percentage * 100)}%`} ({formatDisplayAmount(amount)})
                   </Button>
-                ))}
-              {maxBorrowable > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setLoanAmount([maxBorrowable])}
-                  className={loanAmount[0] === maxBorrowable ? "bg-primary text-primary-foreground" : ""}
-                >
-                  Max ({formatAmount(maxBorrowable)})
-                </Button>
-              )}
-            </div>
+                );
+              }
+              return null;
+            })}
+          </div>
 
-            {/* Health Factor Warning */}
-            {healthFactor > 0 && healthFactor < 1.5 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2 text-yellow-800">
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="font-medium">Health Factor: {healthFactor.toFixed(2)}</span>
-                </div>
-                <p className="text-sm text-yellow-700 mt-1">
-                  Your health factor is low. Consider adding more collateral before borrowing.
-                </p>
+          {/* Health Factor Warning */}
+          {healthFactor > 0 && healthFactor < 1.5 && healthFactor !== 999 && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2 text-yellow-800">
+                <AlertCircle className="w-4 h-4" />
+                <span className="font-medium">Health Factor: {healthFactor.toFixed(2)}</span>
+              </div>
+              <p className="text-sm text-yellow-700 mt-1">
+                Your health factor is low. Consider adding more collateral before borrowing.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Borrow Action */}
+      <Card>
+        <CardContent className="p-6 text-center">
+          <div className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              You're about to borrow <strong>{formatDisplayAmount(loanAmount[0])} {selectedBorrowAsset}</strong> from Tartr
+            </div>
+            
+            <Button 
+              size="lg" 
+              className="w-full max-w-md" 
+              onClick={handleBorrow}
+              disabled={!canBorrowAmount || !hasCollateral || isBorrowing || borrowState.isLoading}
+            >
+              {isBorrowing || borrowState.isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Borrowing from Tartr...
+                </>
+              ) : !hasCollateral ? (
+                "Supply Collateral First"
+              ) : !canBorrowAmount ? (
+                "Insufficient Borrowing Capacity"
+              ) : (
+                `Borrow ${formatDisplayAmount(loanAmount[0])} ${selectedBorrowAsset}`
+              )}
+            </Button>
+
+            {borrowState.error && (
+              <div className="text-sm text-red-600">
+                Error: {borrowState.error}
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Borrow Action */}
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="space-y-4">
-              <div className="text-sm text-muted-foreground">
-                You're about to borrow <strong>{loanAmount[0].toLocaleString()} {selectedBorrowAsset}</strong> from Tartr
-              </div>
-              
-              <Button 
-                size="lg" 
-                className="w-full max-w-md" 
-                onClick={handleBorrow}
-                disabled={!canBorrowAmount || !hasCollateral || isBorrowing || borrowState.isLoading}
-              >
-                {isBorrowing || borrowState.isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Borrowing from Tartr...
-                  </>
-                ) : !hasCollateral ? (
-                  "Supply Collateral First"
-                ) : !canBorrowAmount ? (
-                  "Insufficient Borrowing Capacity"
-                ) : (
-                  `Borrow ${formatAmount(loanAmount[0])} ${selectedBorrowAsset}`
-                )}
-              </Button>
-
-              {borrowState.error && (
-                <div className="text-sm text-red-600">
-                  Error: {borrowState.error}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="text-center pt-4">
         <p className="text-muted-foreground text-sm">
