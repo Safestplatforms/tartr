@@ -178,24 +178,82 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
                       </div>
                     )}
                     
-                    {/* Asset Breakdown */}
-                    {Object.keys(aaveBalances).length > 0 && (
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground border-t pt-2">Assets:</div>
-                        {Object.entries(aaveBalances).slice(0, 3).map(([crypto, data]) => {
-                          const totalAssetValue = (data.balance + data.supplyBalance) * data.price;
-                          if (totalAssetValue > 1) {
-                            return (
-                              <div key={crypto} className="flex justify-between text-xs">
-                                <span className="font-medium">{crypto}:</span>
-                                <span>${totalAssetValue.toFixed(2)}</span>
+                      {/* Asset Breakdown - Clean Version */}
+                      {Object.keys(aaveBalances).length > 0 && (
+                        <div className="space-y-3">
+                          {/* Supplied Assets */}
+                          {Object.entries(aaveBalances).some(([_, data]) => (data.supplyBalance * data.price) > 0.5) && (
+                            <div className="space-y-1">
+                              <div className="text-xs text-muted-foreground border-t pt-2 flex items-center space-x-1">
+                                <span>Supplied Assets:</span>
                               </div>
-                            );
-                          }
-                          return null;
-                        })}
-                      </div>
-                    )}
+                              {Object.entries(aaveBalances).slice(0, 3).map(([crypto, data]) => {
+                                const totalAssetValue = (data.supplyBalance || 0) * data.price;
+                                if (totalAssetValue > 0.5) {
+                                  return (
+                                    <div key={crypto} className="flex justify-between text-xs">
+                                      <span className="font-medium text-green-700">{crypto}</span>
+                                      <span className="text-green-600">${totalAssetValue.toFixed(2)}</span>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })}
+                            </div>
+                          )}
+
+                          {/* Borrowed Assets */}
+                          {Object.entries(aaveBalances).some(([_, data]) => {
+                            const borrowAmount = data.borrowBalance || 0;
+                            return (borrowAmount * data.price) > 0.1;
+                          }) && (
+                            <div className="space-y-1">
+                              <div className="text-xs text-muted-foreground border-t pt-2 flex items-center space-x-1">
+                                <span>Borrowed Assets:</span>
+                              </div>
+                              {Object.entries(aaveBalances).map(([crypto, data]) => {
+                                const borrowBalance = data.borrowBalance || 0;
+                                const totalBorrowedValue = borrowBalance * data.price;
+                                
+                                if (totalBorrowedValue > 0.1) {
+                                  return (
+                                    <div key={crypto} className="flex justify-between text-xs">
+                                      <span className="font-medium text-orange-700">{crypto}</span>
+                                      <span className="text-orange-600">-${totalBorrowedValue.toFixed(2)}</span>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })}
+                            </div>
+                          )}
+
+                          {/* Optional: Net Position Summary */}
+                          <div className="space-y-1">
+                            <div className="text-xs text-muted-foreground border-t pt-2">
+                              Net Position:
+                            </div>
+                            {(() => {
+                              const totalSupplied = Object.values(aaveBalances).reduce((sum, data) => 
+                                sum + (data.supplyBalance * data.price), 0
+                              );
+                              const totalBorrowed = Object.values(aaveBalances).reduce((sum, data) => 
+                                sum + (data.borrowBalance * data.price), 0
+                              );
+                              const netPosition = totalSupplied - totalBorrowed;
+                              
+                              return (
+                                <div className="flex justify-between text-xs font-medium">
+                                  <span>Total Net Value:</span>
+                                  <span className={netPosition >= 0 ? "text-green-600" : "text-red-600"}>
+                                    {netPosition >= 0 ? "+" : ""}${netPosition.toFixed(2)}
+                                  </span>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      )}
 
                   </div>
                 )}
@@ -237,6 +295,7 @@ export function PlatformSidebar({ activeTab, onTabChange, isWalletConnected }: P
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+        
       </SidebarContent>
     </Sidebar>
   );
