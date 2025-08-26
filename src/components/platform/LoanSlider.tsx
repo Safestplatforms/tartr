@@ -1,206 +1,113 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { DollarSign, Info, Wallet, AlertCircle, Loader2 } from "lucide-react";
+import { DollarSign, Info, Wallet, ArrowRight, Loader2, FileText } from "lucide-react";
 import { useAaveData } from "@/hooks/useAaveData";
-import { useAaveTransactions } from "@/hooks/useAaveTransactions";
 import { SUPPORTED_ASSETS } from "@/lib/aave/config";
 import { toast } from "sonner";
 
 const LoanSlider = () => {
+  const navigate = useNavigate();
   const { 
     aaveBalances, 
     maxBorrowable, 
     totalValue, 
     isLoading, 
-    healthFactor, 
     totalSupplied, 
     totalBorrowed 
   } = useAaveData();
   
-  const { borrow, borrowState } = useAaveTransactions();
-  
-  // 🔧 FIXED: Dynamic loan amount based on available amount
+  // Dynamic loan amount based on available amount
   const getInitialLoanAmount = () => {
-    if (maxBorrowable <= 0) return 0;
-    if (maxBorrowable < 1) return maxBorrowable; // For very small amounts
-    return Math.min(Math.floor(maxBorrowable), maxBorrowable);
+    if (maxBorrowable <= 0) return 1000; // Default amount if no collateral
+    if (maxBorrowable < 1) return maxBorrowable;
+    return Math.min(Math.floor(maxBorrowable), 10000); // Cap at 10k for initial display
   };
   
   const [loanAmount, setLoanAmount] = useState([getInitialLoanAmount()]);
   const [selectedBorrowAsset, setSelectedBorrowAsset] = useState('USDC');
-  const [isBorrowing, setIsBorrowing] = useState(false);
 
-  // 🔧 FIXED: Dynamic minimum and step based on available amount
+  // Dynamic slider config
   const getSliderConfig = () => {
-    if (maxBorrowable <= 0) return { min: 0, step: 0.01, max: 0 };
+    const hasCollateral = totalSupplied > 0;
+    const maxAmount = hasCollateral ? Math.max(maxBorrowable, 10000) : 200000;
     
-    if (maxBorrowable < 1) {
-      // Very small amounts (under $1)
-      return { 
-        min: 0.01, 
-        step: 0.01, 
-        max: Math.max(maxBorrowable, 0.01)
-      };
-    } else if (maxBorrowable < 10) {
-      // Small amounts ($1-$10)
-      return { 
-        min: 0.1, 
-        step: 0.1, 
-        max: Math.max(maxBorrowable, 1)
-      };
-    } else if (maxBorrowable < 100) {
-      // Medium amounts ($10-$100)
-      return { 
-        min: 1, 
-        step: 1, 
-        max: Math.max(maxBorrowable, 10)
-      };
-    } else {
-      // Large amounts ($100+)
-      return { 
-        min: 1, 
-        step: 1, 
-        max: Math.max(maxBorrowable, 1000)
-      };
-    }
+    return { 
+      min: 1, 
+      step: loanAmount[0] < 100 ? 1 : 100, 
+      max: maxAmount
+    };
   };
 
   const sliderConfig = getSliderConfig();
 
-  // Define loan tiers based on amount (same as before but now with real data)
-  const getLoanTier = (amount: number) => {
-    if (amount <= 5000) return {
-      name: "Starter",
-      apr: "8.5%",
-      term: "6-12 months",
-      collateralRatio: "150%",
-      features: ["Basic collateral support", "Standard processing", "Email support"]
-    };
-    if (amount <= 25000) return {
-      name: "Growth",
-      apr: "7.2%",
-      term: "6-18 months",
-      collateralRatio: "140%",
-      features: ["Extended collateral support", "Priority processing", "24/7 chat support"]
-    };
-    if (amount <= 100000) return {
-      name: "Professional",
-      apr: "6.8%",
-      term: "12-24 months",
-      collateralRatio: "130%",
-      features: ["All supported cryptocurrencies", "Instant processing", "Dedicated account manager"]
-    };
-    return {
-      name: "Enterprise",
-      apr: "5.5%",
-      term: "12-36 months",
-      collateralRatio: "120%",
-      features: ["Unlimited collateral options", "White-glove service", "Custom API integration"]
-    };
-  };
-
-  // 🔧 FIXED: Better amount formatting for small values
-  const formatAmount = (amount: number) => {
-    if (amount >= 1000000) return `${(amount / 1000000).toFixed(1)}M`;
-    if (amount >= 1000) return `${(amount / 1000).toFixed(0)}K`;
-    if (amount < 1) return amount.toFixed(2); // Show 2 decimals for amounts under $1
-    if (amount < 10) return amount.toFixed(1); // Show 1 decimal for amounts under $10
-    return Math.floor(amount).toLocaleString();
-  };
-
-  // 🔧 FIXED: Better display formatting
   const formatDisplayAmount = (amount: number) => {
     if (amount < 1) return `$${amount.toFixed(2)}`;
     if (amount < 10) return `$${amount.toFixed(1)}`;
     return `$${Math.floor(amount).toLocaleString()}`;
   };
 
-  const currentTier = getLoanTier(loanAmount[0]);
-  const isPopular = currentTier.name === "Growth";
-  
-  // Real borrowing capacity checks
-  const hasCollateral = totalSupplied > 0;
-  const canBorrowAmount = loanAmount[0] <= maxBorrowable && loanAmount[0] > 0;
-  const borrowAsset = SUPPORTED_ASSETS[selectedBorrowAsset as keyof typeof SUPPORTED_ASSETS];
-
-  const handleBorrow = async () => {
-    if (!canBorrowAmount) {
-      toast.error('Insufficient borrowing capacity');
+  // Handle application start - ONLY 3-step flow
+  const handleStartApplication = () => {
+    if (loanAmount[0] <= 0) {
+      toast.error('Please enter a valid loan amount');
       return;
     }
-
-    if (!hasCollateral) {
-      toast.error('Please supply collateral first');
-      return;
-    }
-
-    setIsBorrowing(true);
     
-    try {
-      await borrow(selectedBorrowAsset, loanAmount[0]);
-      
-      if (borrowState.txHash) {
-        toast.success(`Successfully borrowed ${loanAmount[0]} ${selectedBorrowAsset}`);
-      }
-    } catch (error) {
-      console.error('Borrow failed:', error);
-      toast.error('Failed to borrow');
-    } finally {
-      setIsBorrowing(false);
-    }
+    // Navigate to 3-step loan application
+    navigate(`/platform/apply?amount=${loanAmount[0]}&asset=${selectedBorrowAsset}`);
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
           <p className="text-muted-foreground">Loading Tartr data...</p>
         </div>
       </div>
     );
   }
 
-  // Show different UI based on user's Aave position
+  // Show different UI based on user's position
+  const hasCollateral = totalSupplied > 0;
+
   if (!hasCollateral && maxBorrowable === 0) {
     return (
       <div className="space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold mb-4">Start Your DeFi Journey</h2>
+          <h2 className="text-3xl font-bold mb-4">Apply for Your First Loan</h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            To borrow from Tartr, you first need to supply collateral. Add crypto to your wallet and supply it to Tartr to start borrowing.
+            Start your loan application. We'll guide you through supplying collateral in the first step.
           </p>
         </div>
 
         <Card className="max-w-2xl mx-auto">
           <CardContent className="p-8 text-center">
-            <Wallet className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-4">No Collateral Detected</h3>
+            <FileText className="w-16 h-16 text-primary mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-4">Ready to Get Started?</h3>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="text-left">
-                  <p className="text-muted-foreground">Portfolio Value:</p>
-                  <p className="font-semibold">${totalValue.toLocaleString()}</p>
-                </div>
-                <div className="text-left">
-                  <p className="text-muted-foreground">Borrowing Capacity:</p>
-                  <p className="font-semibold">${maxBorrowable.toLocaleString()}</p>
-                </div>
-              </div>
-              
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-800 mb-2">How to get started:</h4>
+                <h4 className="font-medium text-blue-800 mb-2">Our 3-step process will help you:</h4>
                 <ol className="text-sm text-blue-700 text-left space-y-1">
-                  <li>1. Add ETH, WBTC, LINK, or UNI to your wallet</li>
-                  <li>2. Go to the Portfolio tab</li>
-                  <li>3. Supply your crypto as collateral to Tartr</li>
-                  <li>4. Return here to borrow against your collateral</li>
+                  <li>1️⃣ Supply collateral (ETH, WBTC, LINK, or UNI)</li>
+                  <li>2️⃣ Set loan terms and duration</li>
+                  <li>3️⃣ Review and submit your application</li>
                 </ol>
               </div>
+              
+              <Button 
+                onClick={handleStartApplication}
+                size="lg" 
+                className="w-full"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Start Loan Application
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -215,7 +122,7 @@ const LoanSlider = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Borrow from Tartr</h1>
+        <h1 className="text-4xl font-bold mb-4">Apply for a Loan</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
           <div className="text-center">
             <div className="text-xl font-bold text-blue-600">${totalSupplied.toFixed(2)}</div>
@@ -232,17 +139,16 @@ const LoanSlider = () => {
         </div>
       </div>
 
-      {/* Borrow Asset Selection */}
+      {/* Loan Asset Selection */}
       <Card>
         <CardHeader>
-          <CardTitle>Select Borrow Asset</CardTitle>
+          <CardTitle>Select Loan Asset</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {borrowableAssets.map((asset) => {
-              // 🔧 FIXED: Get real borrowing rate from aaveBalances
               const assetData = aaveBalances[asset];
-              const borrowRate = assetData?.borrowAPY || 0;
+              const borrowRate = assetData?.borrowAPY || 7.0;
               
               return (
                 <Card 
@@ -258,7 +164,7 @@ const LoanSlider = () => {
                       {SUPPORTED_ASSETS[asset as keyof typeof SUPPORTED_ASSETS]?.name}
                     </div>
                     <Badge variant="secondary" className="mt-2">
-                      {borrowRate > 0 ? `${borrowRate.toFixed(2)}%` : '~7.0%'} APY
+                      ~{borrowRate.toFixed(1)}% APY
                     </Badge>
                   </CardContent>
                 </Card>
@@ -294,85 +200,116 @@ const LoanSlider = () => {
               min={sliderConfig.min}
               step={sliderConfig.step}
               className="w-full"
-              disabled={maxBorrowable === 0}
             />
             <div className="flex justify-between text-sm text-muted-foreground mt-2">
               <span>{formatDisplayAmount(sliderConfig.min)}</span>
-              <span>{formatDisplayAmount(maxBorrowable)}</span>
+              <span>{formatDisplayAmount(sliderConfig.max)}</span>
             </div>
           </div>
           
-          {/* Quick Amount Buttons - Only show if amounts are achievable */}
+          {/* Quick Amount Buttons */}
           <div className="flex flex-wrap gap-2 justify-center">
-            {/* Show percentage-based options for small amounts */}
-            {maxBorrowable > 0 && [0.25, 0.5, 0.75, 1].map((percentage) => {
-              const amount = maxBorrowable * percentage;
-              if (amount >= sliderConfig.min) {
-                return (
-                  <Button
-                    key={percentage}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setLoanAmount([amount])}
-                    className={Math.abs(loanAmount[0] - amount) < 0.01 ? "bg-primary text-primary-foreground" : ""}
-                  >
-                    {percentage === 1 ? 'Max' : `${(percentage * 100)}%`} ({formatDisplayAmount(amount)})
-                  </Button>
-                );
-              }
-              return null;
-            })}
+            {hasCollateral && maxBorrowable > 0 ? 
+              // Show percentage-based options if user has collateral
+              [0.25, 0.5, 0.75, 1].map((percentage) => {
+                const amount = Math.min(maxBorrowable * percentage, sliderConfig.max);
+                if (amount >= sliderConfig.min) {
+                  return (
+                    <Button
+                      key={percentage}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setLoanAmount([amount])}
+                      className={Math.abs(loanAmount[0] - amount) < 1 ? "bg-primary text-primary-foreground" : ""}
+                    >
+                      {percentage === 1 ? 'Max' : `${(percentage * 100)}%`} ({formatDisplayAmount(amount)})
+                    </Button>
+                  );
+                }
+                return null;
+              })
+              :
+              // Show fixed amounts if no collateral
+              [1000, 5000, 10000, 25000, 50000].map((amount) => (
+                <Button
+                  key={amount}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLoanAmount([amount])}
+                  className={loanAmount[0] === amount ? "bg-primary text-primary-foreground" : ""}
+                >
+                  {formatDisplayAmount(amount)}
+                </Button>
+              ))
+            }
           </div>
 
-          {/* Health Factor Warning */}
-          {healthFactor > 0 && healthFactor < 1.5 && healthFactor !== 999 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2 text-yellow-800">
-                <AlertCircle className="w-4 h-4" />
-                <span className="font-medium">Health Factor: {healthFactor.toFixed(2)}</span>
+          {/* Loan Preview */}
+          <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 border">
+            <div className="text-sm font-medium text-blue-900 mb-2">Loan Application Preview</div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground">Loan Amount</p>
+                <p className="font-bold">{formatDisplayAmount(loanAmount[0])} {selectedBorrowAsset}</p>
               </div>
-              <p className="text-sm text-yellow-700 mt-1">
-                Your health factor is low. Consider adding more collateral before borrowing.
-              </p>
+              <div>
+                <p className="text-muted-foreground">Collateral Required</p>
+                <p className="font-bold">{formatDisplayAmount(loanAmount[0] * 1.4)}</p>
+              </div>
             </div>
-          )}
+            <p className="text-xs text-blue-700 mt-2">
+              Final terms will be set in step 2 of your application
+            </p>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Borrow Action */}
+      {/* Application Action */}
       <Card>
-        <CardContent className="p-6 text-center">
-          <div className="space-y-4">
-            <div className="text-sm text-muted-foreground">
-              You're about to borrow <strong>{formatDisplayAmount(loanAmount[0])} {selectedBorrowAsset}</strong> from Tartr
-            </div>
-            
-            <Button 
-              size="lg" 
-              className="w-full max-w-md" 
-              onClick={handleBorrow}
-              disabled={!canBorrowAmount || !hasCollateral || isBorrowing || borrowState.isLoading}
-            >
-              {isBorrowing || borrowState.isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Borrowing from Tartr...
-                </>
-              ) : !hasCollateral ? (
-                "Supply Collateral First"
-              ) : !canBorrowAmount ? (
-                "Insufficient Borrowing Capacity"
-              ) : (
-                `Borrow ${formatDisplayAmount(loanAmount[0])} ${selectedBorrowAsset}`
-              )}
-            </Button>
-
-            {borrowState.error && (
-              <div className="text-sm text-red-600">
-                Error: {borrowState.error}
-              </div>
-            )}
+        <CardContent className="p-6 text-center space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold">Ready to Apply?</h3>
+            <p className="text-muted-foreground">
+              Complete your {formatDisplayAmount(loanAmount[0])} {selectedBorrowAsset} loan application in 3 simple steps
+            </p>
           </div>
+          
+          {/* 3-Step Preview */}
+          <div className="flex justify-center space-x-6 text-xs text-muted-foreground py-4">
+            <div className="text-center">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                <span className="text-blue-600 font-bold">1</span>
+              </div>
+              <span>Supply Collateral</span>
+            </div>
+            <div className="text-center">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                <span className="text-green-600 font-bold">2</span>
+              </div>
+              <span>Set Terms</span>
+            </div>
+            <div className="text-center">
+              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                <span className="text-purple-600 font-bold">3</span>
+              </div>
+              <span>Review & Submit</span>
+            </div>
+          </div>
+          
+          <Button 
+            size="lg" 
+            className="w-full max-w-md" 
+            onClick={handleStartApplication}
+            disabled={loanAmount[0] <= 0}
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Start Loan Application
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+
+          <p className="text-xs text-muted-foreground">
+            ⚡ Quick approval • 🔒 Secure process • 💰 Instant funding
+          </p>
         </CardContent>
       </Card>
 

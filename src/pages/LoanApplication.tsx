@@ -1,27 +1,34 @@
-
 import { useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft } from "lucide-react";
+import { ConnectButton, useActiveAccount } from "thirdweb/react";
+import { client, wallets } from "@/lib/thirdweb";
 import CollateralStep from "@/components/platform/CollateralStep";
 import LoanTermsStep from "@/components/platform/LoanTermsStep";
 import ReviewStep from "@/components/platform/ReviewStep";
 
 const LoanApplication = () => {
   const [searchParams] = useSearchParams();
-  const loanAmount = searchParams.get('amount') || '10000';
-  const planName = searchParams.get('plan') || 'Growth';
+  const loanAmount = searchParams.get('amount') || '1000';
+  const selectedAsset = searchParams.get('asset') || 'USDC';  // Extract asset from URL
+  const planName = searchParams.get('plan') || 'Standard';
+  
+  // Thirdweb wallet connection
+  const account = useActiveAccount();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [applicationData, setApplicationData] = useState({
     loanAmount: parseInt(loanAmount),
+    asset: selectedAsset,  // Add asset to application data
     planName,
     collateral: {
       asset: '',
       amount: 0,
-      value: 0
+      value: 0,
+      sufficient: false
     },
     terms: {
       duration: 12,
@@ -72,9 +79,47 @@ const LoanApplication = () => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-muted-foreground">0x1234...5678</span>
+          <div className="flex items-center space-x-4">
+            {/* Wallet Connection Status & Widget */}
+            <div className="flex items-center space-x-3">
+              {account ? (
+                <>
+                <ConnectButton 
+                    client={client}
+                    wallets={wallets}
+                    theme="dark"
+                    connectButton={{
+                      label: "Switch Wallet",
+                      style: {
+                        fontSize: "14px",
+                        height: "36px",
+                        minWidth: "120px"
+                      }
+                    }}
+                    
+                  />
+                </>
+              ) : (
+                <>
+              <ConnectButton 
+                    client={client}
+                    wallets={wallets}
+                    theme="dark"
+                    connectButton={{
+                      label: "Connect Wallet",
+                      style: {
+                        fontSize: "14px",
+                        height: "36px",
+                        minWidth: "140px",
+                        backgroundColor: "#3b82f6",
+                        color: "white"
+                      }
+                    }}
+                    
+                  />
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -85,7 +130,7 @@ const LoanApplication = () => {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-6">
               <h1 className="text-3xl font-bold mb-2">
-                ${parseInt(loanAmount).toLocaleString()} {planName} Loan Application
+                ${parseInt(loanAmount).toLocaleString()} {selectedAsset} Loan Application
               </h1>
               <p className="text-muted-foreground">
                 Complete your application in {steps.length} simple steps
@@ -119,28 +164,55 @@ const LoanApplication = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          {currentStep === 1 && (
-            <CollateralStep 
-              applicationData={applicationData}
-              onUpdate={updateApplicationData}
-              onNext={nextStep}
-            />
-          )}
-          
-          {currentStep === 2 && (
-            <LoanTermsStep 
-              applicationData={applicationData}
-              onUpdate={updateApplicationData}
-              onNext={nextStep}
-              onPrev={prevStep}
-            />
-          )}
-          
-          {currentStep === 3 && (
-            <ReviewStep 
-              applicationData={applicationData}
-              onPrev={prevStep}
-            />
+          {/* Wallet Connection Check */}
+          {!account ? (
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <ArrowLeft className="w-8 h-8 text-orange-600 transform rotate-45" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Wallet Connection Required</h3>
+                <p className="text-muted-foreground mb-6">
+                  To continue with your loan application, please connect your wallet using the "Connect Wallet" button above.
+                </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                    Your wallet is needed to:
+                  </p>
+                  <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                    <li>• Supply collateral to secure your loan</li>
+                    <li>• Execute the borrow transaction</li>
+                    <li>• Receive your loan funds</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {currentStep === 1 && (
+                <CollateralStep 
+                  applicationData={applicationData}
+                  onUpdate={updateApplicationData}
+                  onNext={nextStep}
+                />
+              )}
+              
+              {currentStep === 2 && (
+                <LoanTermsStep 
+                  applicationData={applicationData}
+                  onUpdate={updateApplicationData}
+                  onNext={nextStep}
+                  onPrev={prevStep}
+                />
+              )}
+              
+              {currentStep === 3 && (
+                <ReviewStep 
+                  applicationData={applicationData}
+                  onPrev={prevStep}
+                />
+              )}
+            </>
           )}
         </div>
       </main>
