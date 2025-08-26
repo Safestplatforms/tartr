@@ -2,7 +2,6 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
-import SupportedAssets from "@/components/SupportedAssets";
 import BorrowSection from "@/components/BorrowSection";
 import SecurityTrust from "@/components/SecurityTrust";
 import TartrVisaSection from "@/components/TartrVisaSection";
@@ -18,7 +17,6 @@ const Index = () => {
       <main>
         <Hero />
         <HowItWorks />
-        <SupportedAssets />
         <BorrowSection />
         <SecurityTrust />
         <FinanceUnlocked />

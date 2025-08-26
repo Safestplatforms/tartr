@@ -18,20 +18,24 @@ const Hero = () => {
   }, [account, navigate]);
 
   return (
-    <section className="relative py-20 px-4 bg-gradient-to-b from-background to-background/50 overflow-hidden">
+    <section className="relative min-h-screen flex items-center py-12 px-4 bg-gradient-to-b from-background to-background/50 overflow-hidden">
       <GeometricBackground />
-      <div className="container mx-auto text-center relative z-10">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 animate-fade-in">
+      <div className="container mx-auto text-center relative z-10 w-full">
+        <div className="max-w-5xl mx-auto">
+          {/* Main headline - Better responsive typography */}
+          <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-4 sm:mb-6 animate-fade-in leading-tight">
             Unlock Your Crypto's
-            <span className="text-primary block">Potential</span>
+            <span className="text-primary block mt-2">Potential</span>
           </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in [animation-delay:200ms]">
+          
+          {/* Subtitle - Better line height and spacing */}
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground md:mt-16 mb-6 sm:mb-8 max-w-3xl mx-auto animate-fade-in [animation-delay:200ms] leading-relaxed px-4">
             Deposit BTC & ETH as collateral to borrow USDC & USDT. 
             Simple, secure, and instant crypto lending platform.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-fade-in [animation-delay:400ms]">
+          {/* CTA Buttons - Better mobile layout */}
+          <div className="flex md:flex-row flex-col xs:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 sm:mb-12 animate-fade-in [animation-delay:400ms] px-4">
             <ConnectButton
               client={client}
               wallets={wallets}
@@ -61,28 +65,28 @@ const Hero = () => {
             </Link>
           </div>
 
-          {/* Feature highlights */}
-          <div className="grid md:grid-cols-3 gap-8 max-w-3xl mx-auto animate-fade-in [animation-delay:600ms]">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Zap className="w-6 h-6 text-primary" />
+          {/* Feature highlights - Improved responsive grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 max-w-4xl mx-auto animate-fade-in [animation-delay:600ms] px-4">
+            <div className="flex flex-col items-center text-center p-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Zap className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2">Instant Loans</h3>
-              <p className="text-sm text-muted-foreground">Get USDC/USDT loans in seconds</p>
+              <h3 className="font-semibold mb-2 text-base sm:text-lg">Instant Loans</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">Get USDC/USDT loans in seconds</p>
             </div>
-            <div className="flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Shield className="w-6 h-6 text-primary" />
+            <div className="flex flex-col items-center text-center p-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2">Secure & Safe</h3>
-              <p className="text-sm text-muted-foreground">Your crypto is protected by smart contracts</p>
+              <h3 className="font-semibold mb-2 text-base sm:text-lg">Secure & Safe</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">Your crypto is protected by smart contracts</p>
             </div>
-            <div className="flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <TrendingUp className="w-6 h-6 text-primary" />
+            <div className="flex flex-col items-center text-center p-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2">Competitive Rates</h3>
-              <p className="text-sm text-muted-foreground">Low interest rates and flexible terms</p>
+              <h3 className="font-semibold mb-2 text-base sm:text-lg">Competitive Rates</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">Low interest rates and flexible terms</p>
             </div>
           </div>
         </div>
