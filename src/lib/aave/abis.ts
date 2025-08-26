@@ -138,35 +138,7 @@ export const AAVE_UI_POOL_DATA_PROVIDER_ABI = [
           {"internalType": "uint256", "name": "totalPrincipalStableDebt", "type": "uint256"},
           {"internalType": "uint256", "name": "averageStableRate", "type": "uint256"},
           {"internalType": "uint256", "name": "stableDebtLastUpdateTimestamp", "type": "uint256"},
-          {"internalType": "uint256", "name": "totalScaledVariableDebt", "type": "uint256"},
-          {"internalType": "uint256", "name": "priceInMarketReferenceCurrency", "type": "uint256"},
-          {"internalType": "address", "name": "priceOracle", "type": "address"},
-          {"internalType": "uint256", "name": "variableRateSlope1", "type": "uint256"},
-          {"internalType": "uint256", "name": "variableRateSlope2", "type": "uint256"},
-          {"internalType": "uint256", "name": "stableRateSlope1", "type": "uint256"},
-          {"internalType": "uint256", "name": "stableRateSlope2", "type": "uint256"},
-          {"internalType": "uint256", "name": "baseStableBorrowRate", "type": "uint256"},
-          {"internalType": "uint256", "name": "baseVariableBorrowRate", "type": "uint256"},
-          {"internalType": "uint256", "name": "optimalUsageRatio", "type": "uint256"},
-          {"internalType": "bool", "name": "isPaused", "type": "bool"},
-          {"internalType": "bool", "name": "isSiloedBorrowing", "type": "bool"},
-          {"internalType": "uint128", "name": "accruedToTreasury", "type": "uint128"},
-          {"internalType": "uint128", "name": "unbacked", "type": "uint128"},
-          {"internalType": "uint128", "name": "isolationModeTotalDebt", "type": "uint128"},
-          {"internalType": "uint256", "name": "debtCeiling", "type": "uint256"},
-          {"internalType": "uint256", "name": "debtCeilingDecimals", "type": "uint256"},
-          {"internalType": "uint8", "name": "eModeCategoryId", "type": "uint8"},
-          {"internalType": "uint256", "name": "borrowCap", "type": "uint256"},
-          {"internalType": "uint256", "name": "supplyCap", "type": "uint256"},
-          {"internalType": "uint16", "name": "eModeLtv", "type": "uint16"},
-          {"internalType": "uint16", "name": "eModeLiquidationThreshold", "type": "uint16"},
-          {"internalType": "uint16", "name": "eModeLiquidationBonus", "type": "uint16"},
-          {"internalType": "address", "name": "eModePriceSource", "type": "address"},
-          {"internalType": "string", "name": "eModeLabel", "type": "string"},
-          {"internalType": "bool", "name": "borrowableInIsolation", "type": "bool"},
-          {"internalType": "uint256", "name": "totalDebt", "type": "uint256"},
-          {"internalType": "uint256", "name": "totalVariableDebt", "type": "uint256"},
-          {"internalType": "uint256", "name": "totalStableDebt", "type": "uint256"}
+          {"internalType": "uint256", "name": "totalScaledVariableDebt", "type": "uint256"}
         ],
         "internalType": "struct IUiPoolDataProviderV3.AggregatedReserveData[]",
         "name": "",
@@ -328,7 +300,7 @@ export const ERC20_ABI = [
   }
 ] as const;
 
-// WETH Gateway ABI for ETH deposits/withdrawals
+// ✅ UPDATED: Complete WETH Gateway ABI with all necessary functions
 export const WETH_GATEWAY_ABI = [
   {
     "inputs": [
@@ -374,6 +346,35 @@ export const WETH_GATEWAY_ABI = [
     "name": "repayETH",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  // ✅ NEW: Additional functions that might be needed
+  {
+    "inputs": [],
+    "name": "getWETHAddress",
+    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "to", "type": "address"},
+      {"internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "emergencyEtherTransfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "token", "type": "address"},
+      {"internalType": "address", "name": "to", "type": "address"},
+      {"internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "emergencyTokenTransfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ] as const;
