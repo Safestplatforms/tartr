@@ -171,14 +171,25 @@ const LoanSlider = () => {
     return rates?.borrow ?? getRealisticBorrowRate(symbol);
   };
 
-  // Dynamic slider config
+  // 🔧 FIXED: Dynamic stepping function
+  const applyDynamicSteps = (value: number) => {
+    if (value < 100) {
+      return Math.round(value); // Step 1: gives 1, 2, 3, 4... 99
+    } else if (value < 1000) {
+      return Math.round(value / 10) * 10; // Step 10: gives 100, 110, 120... 990
+    } else {
+      return Math.round(value / 100) * 100; // Step 100: gives 1000, 1100, 1200...
+    }
+  };
+
+  // 🔧 FIXED: Dynamic slider config with smooth dragging
   const getSliderConfig = () => {
     const hasCollateral = totalSupplied > 0;
     const maxAmount = hasCollateral ? Math.max(maxBorrowable, 10000) : 200000;
     
     return { 
       min: 1, 
-      step: loanAmount[0] < 100 ? 1 : 100, 
+      step: 1, // Always use step=1 for smooth dragging, we handle stepping in onChange
       max: maxAmount
     };
   };
@@ -307,9 +318,13 @@ const LoanSlider = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="px-4">
+            {/* 🔧 FIXED: Slider with dynamic stepping */}
             <Slider
               value={loanAmount}
-              onValueChange={setLoanAmount}
+              onValueChange={(newValue) => {
+                const steppedValue = applyDynamicSteps(newValue[0]);
+                setLoanAmount([steppedValue]);
+              }}
               max={sliderConfig.max}
               min={sliderConfig.min}
               step={sliderConfig.step}
@@ -333,10 +348,10 @@ const LoanSlider = () => {
                       key={percentage}
                       variant="outline"
                       size="sm"
-                      onClick={() => setLoanAmount([amount])}
-                      className={Math.abs(loanAmount[0] - amount) < 1 ? "bg-primary text-primary-foreground" : ""}
+                      onClick={() => setLoanAmount([applyDynamicSteps(amount)])}
+                      className={Math.abs(loanAmount[0] - applyDynamicSteps(amount)) < 1 ? "bg-primary text-primary-foreground" : ""}
                     >
-                      {percentage === 1 ? 'Max' : `${(percentage * 100)}%`} ({formatDisplayAmount(amount)})
+                      {percentage === 1 ? 'Max' : `${(percentage * 100)}%`} ({formatDisplayAmount(applyDynamicSteps(amount))})
                     </Button>
                   );
                 }

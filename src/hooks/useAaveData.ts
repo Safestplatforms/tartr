@@ -232,7 +232,7 @@ export const useAaveData = () => {
     };
 
     fetchRealPrices();
-    const priceInterval = setInterval(fetchRealPrices, 2 * 60 * 1000);
+    const priceInterval = setInterval(fetchRealPrices, 20 * 60 * 1000);
     return () => clearInterval(priceInterval);
   }, []);
 
@@ -241,7 +241,7 @@ export const useAaveData = () => {
     fetchAaveRates();
     
     // Update rates every 5 minutes
-    const ratesInterval = setInterval(fetchAaveRates, 5 * 60 * 1000);
+    const ratesInterval = setInterval(fetchAaveRates, 20 * 60 * 1000);
     return () => clearInterval(ratesInterval);
   }, []);
 

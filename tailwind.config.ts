@@ -52,17 +52,6 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				success: {
-					DEFAULT: 'hsl(var(--success))',
-					foreground: 'hsl(var(--success-foreground))'
-				},
-				chart: {
-					'1': 'hsl(var(--chart-1))',
-					'2': 'hsl(var(--chart-2))',
-					'3': 'hsl(var(--chart-3))',
-					'4': 'hsl(var(--chart-4))',
-					'5': 'hsl(var(--chart-5))'
-				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -78,6 +67,9 @@ export default {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))'
 			},
 			keyframes: {
 				'accordion-down': {
@@ -95,11 +87,29 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'shimmer': {
+					'0%': { left: '-100%' },
+					'50%': { left: '100%' },
+					'100%': { left: '100%' }
+				},
+				'shimmer-fast': {
+					'0%': { left: '-100%' },
+					'50%': { left: '100%' },
+					'100%': { left: '100%' }
+				},
+				'shimmer-slow': {
+					'0%': { left: '-100%' },
+					'50%': { left: '100%' },
+					'100%': { left: '100%' }
 				}
 			},
 			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-down': 'accordion-down 0.3s ease-out',
+				'accordion-up': 'accordion-up 0.3s ease-out',
+				'shimmer': 'shimmer 4s ease-in-out infinite',
+				'shimmer-fast': 'shimmer-fast 3s ease-in-out infinite',
+				'shimmer-slow': 'shimmer-slow 8s ease-in-out infinite'
 			}
 		}
 	},
