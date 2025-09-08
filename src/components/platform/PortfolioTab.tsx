@@ -438,7 +438,7 @@ const PortfolioTab = () => {
                      healthFactor >= 1.2 ? "M 10 40 A 30 30 0 0 1 50 10" : 
                      "M 10 40 A 30 30 0 0 1 40 15"}
                   fill="none"
-                  stroke={healthFactor >= 1.5 ? "hsl(var(--primary))" : 
+                  stroke={healthFactor >= 1.5 ? "#26c412da" : 
                          healthFactor >= 1.2 ? "#eab308" : "#ef4444"}
                   strokeWidth="4"
                   strokeLinecap="round"
@@ -448,7 +448,7 @@ const PortfolioTab = () => {
                   cx={healthFactor >= 1.5 ? "61.21" : healthFactor >= 1.2 ? "50" : "40"} 
                   cy={healthFactor >= 1.5 ? "18.79" : healthFactor >= 1.2 ? "10" : "15"} 
                   r="2" 
-                  fill={healthFactor >= 1.5 ? "hsl(var(--primary))" : 
+                  fill={healthFactor >= 1.5 ? "#26c412da" : 
                         healthFactor >= 1.2 ? "#eab308" : "#ef4444"} 
                 />
               </svg>
@@ -471,11 +471,11 @@ const PortfolioTab = () => {
           <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border/30">
             <div className="space-y-1">
               <div className="text-xs text-muted-foreground">Supplied</div>
-              <div className="text-sm font-semibold text-foreground">${totalSupplied.toLocaleString()}</div>
+              <div className="text-sm font-semibold text-foreground">${totalSupplied.toFixed(2).toLocaleString()}</div>
             </div>
             <div className="space-y-1">
               <div className="text-xs text-muted-foreground">Borrowed</div>
-              <div className="text-sm font-semibold text-foreground">${totalBorrowed.toLocaleString()}</div>
+              <div className="text-sm font-semibold text-foreground">${totalBorrowed.toFixed(2).toLocaleString()}</div>
             </div>
           </div>
         </div>
@@ -549,7 +549,7 @@ const PortfolioTab = () => {
 
                   {/* Supplied Amount */}
                   <div className="col-span-2 text-center">
-                    {data.supplyBalance > 0 ? (
+                    {data.supplyBalance > 0.02 ? (
                       <>
                         <p className="text-sm font-medium text-green-600">
                           {data.supplyBalance.toFixed(symbol === 'USDC' || symbol === 'USDT' ? 2 : 6)}

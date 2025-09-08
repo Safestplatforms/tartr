@@ -304,7 +304,6 @@ const LoanSlider = () => {
         <CardHeader className="text-center">
           <div className="space-y-2">
             <div className="flex items-center justify-center space-x-2">
-              <DollarSign className="w-8 h-8 text-primary" />
               <div className="text-5xl font-bold text-primary">
                 {formatDisplayAmount(loanAmount[0])}
               </div>
