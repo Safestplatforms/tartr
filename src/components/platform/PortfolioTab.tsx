@@ -549,7 +549,7 @@ const PortfolioTab = () => {
 
                   {/* Supplied Amount */}
                   <div className="col-span-2 text-center">
-                    {data.supplyBalance > 0.02 ? (
+                    {data.supplyBalance * data.price > 0.02 ? (
                       <>
                         <p className="text-sm font-medium text-green-600">
                           {data.supplyBalance.toFixed(symbol === 'USDC' || symbol === 'USDT' ? 2 : 6)}
@@ -563,7 +563,7 @@ const PortfolioTab = () => {
 
                   {/* Borrowed Amount */}
                   <div className="col-span-2 text-center">
-                    {data.borrowBalance > 0 ? (
+                    {data.borrowBalance * data.price > 0.02 ? (
                       <>
                         <p className="text-sm font-medium text-red-600">
                           {data.borrowBalance.toFixed(symbol === 'USDC' || symbol === 'USDT' ? 2 : 6)}
